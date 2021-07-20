@@ -415,6 +415,76 @@ qboolean Mod_CheckFullbrights (byte *pixels, int count)
 
 /*
 =================
+Mod_ParseWadsFromEntityLump
+For Half-life maps
+=================
+*/
+static void Mod_ParseWadsFromEntityLump(const char *data)
+{
+	char *s, key[1024], value[1024];
+	int i, j, k;
+
+	if (!data || !(data = COM_Parse(data)))
+		return;
+
+	if (com_token[0] != '{')
+		return; // error
+
+	while (1)
+	{
+		if (!(data = COM_Parse(data)))
+			return; // error
+
+		if (com_token[0] == '}')
+			break; // end of worldspawn
+
+		Q_strncpyz(key, (com_token[0] == '_') ? com_token + 1 : com_token, sizeof(key));
+
+		for (s = key + strlen(key) - 1; s >= key && *s == ' '; s--)		// remove trailing spaces
+			*s = 0;
+
+		if (!(data = COM_Parse(data)))
+			return; // error
+
+		Q_strncpyz(value, com_token, sizeof(value));
+
+		if (!strcmp("MaxRange", key))
+            Cvar_Set("r_maxrange", value);
+
+		if (!strcmp("wad", key))
+		{
+			j = 0;
+			for (i = 0; i < strlen(value); i++)
+			{
+				if (value[i] != ';' && value[i] != '\\' && value[i] != '/' && value[i] != ':')
+					break;
+			}
+			if (!value[i])
+				continue;
+			for ( ; i < sizeof(value); i++)
+			{
+				// ignore path - the \\ check is for HalfLife... stupid windoze 'programmers'...
+				if (value[i] == '\\' || value[i] == '/' || value[i] == ':')
+				{
+					j = i + 1;
+				}
+                else if (value[i] == ';' || value[i] == 0)
+				{
+					k = value[i];
+					value[i] = 0;
+					if (value[j])
+						WAD3_LoadTextureWadFile (value + j);
+					j = i + 1;
+					if (!k)
+						break;
+				}
+			}
+		}
+    }
+}
+
+/*
+=================
 Mod_LoadTextures
 =================
 */
@@ -456,6 +526,10 @@ void Mod_LoadTextures (lump_t *l)
 
 	loadmodel->numtextures = nummiptex + 2; //johnfitz -- need 2 dummy texture chains for missing textures
 	loadmodel->textures = (texture_t **) Hunk_AllocName (loadmodel->numtextures * sizeof(*loadmodel->textures) , loadname);
+
+	// motolegacy - load referenced WAD3 files for HLBSP, from DQuake+ 
+	if (loadmodel->bspversion == HL_BSPVERSION)
+		Mod_ParseWadsFromEntityLump(loadmodel->entities);
 
 	for (i=0 ; i<nummiptex ; i++)
 	{
@@ -2117,6 +2191,7 @@ void Mod_LoadBrushModel (qmodel_t *mod, void *buffer)
 	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES]);
 	Mod_LoadEdges (&header->lumps[LUMP_EDGES], bsp2);
 	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES]);
+	Mod_LoadEntities (&header->lumps[LUMP_ENTITIES]);
 	Mod_LoadTextures (&header->lumps[LUMP_TEXTURES]);
 	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING]);
 	Mod_LoadPlanes (&header->lumps[LUMP_PLANES]);
@@ -2127,7 +2202,6 @@ void Mod_LoadBrushModel (qmodel_t *mod, void *buffer)
 	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS], bsp2);
 	Mod_LoadNodes (&header->lumps[LUMP_NODES], bsp2);
 	Mod_LoadClipnodes (&header->lumps[LUMP_CLIPNODES], bsp2);
-	Mod_LoadEntities (&header->lumps[LUMP_ENTITIES]);
 	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS]);
 
 	Mod_MakeHull0 ();
