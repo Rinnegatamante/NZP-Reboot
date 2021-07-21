@@ -592,12 +592,13 @@ static void SCR_CalcRefdef (void)
 
 	//johnfitz -- rewrote this section
 	r_refdef.vrect.width = q_max(glwidth * size, 96); //no smaller than 96, for icons
-	r_refdef.vrect.height = q_min(glheight * size, glheight - sb_lines); //make room for sbar
+	r_refdef.vrect.height = q_min(glheight * size, glheight);
 	r_refdef.vrect.x = (glwidth - r_refdef.vrect.width)/2;
-	r_refdef.vrect.y = (glheight - sb_lines - r_refdef.vrect.height)/2;
+	r_refdef.vrect.y = (glheight - r_refdef.vrect.height)/2;
 	//johnfitz
 
-	r_refdef.fov_x = AdaptFovx(scr_fov.value, vid.width, vid.height);
+	// motolegacy -- hack to enable more standard fov values in quakespasm
+	r_refdef.fov_x = AdaptFovx(scr_fov.value - 15, vid.width, vid.height);
 	r_refdef.fov_y = CalcFovy (r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
 
 	scr_vrect = r_refdef.vrect;

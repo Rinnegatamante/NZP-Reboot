@@ -1140,6 +1140,11 @@ void V_CalcRefdef (void)
 	VectorCopy (ent->origin, view->origin);
 	view->origin[2] += cl.viewheight;
 
+	// motolegacy -- z axis offset increases (somewhere???) when viewheight is >= 32.. just
+	// hack it back down to where it needs to be.
+	if (cl.viewheight >= 32)
+		view->origin[2] -= 2;
+
 	//Storing base location, later to calculate total offset
 	CWeaponOffset[0]= view->origin[0] * -1;
 	CWeaponOffset[1]= view->origin[1] * -1;
@@ -1204,7 +1209,7 @@ void V_CalcRefdef (void)
 
 	temp_up[0] *= cADSOfs[1];
 	temp_up[1] *= cADSOfs[1];
-	temp_up[2] *= cADSOfs[1];
+	temp_up[2] *= (cADSOfs[1] * 4); // motolegacy -- another vmodel hack: standard ADS offsets don't go up enough
 
 	view->origin[0] +=(temp_right[0] + temp_up[0]);
 	view->origin[1] +=(temp_right[1] + temp_up[1]);

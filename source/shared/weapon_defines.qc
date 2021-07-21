@@ -1497,14 +1497,7 @@ vector GetWeaponADSOfs_PSP(float wep) =
 			return [-12700, 2086.9, 0];
 		case W_GEWEHR:
 		case W_COMPRESSOR:
-			#ifdef PSP
 			return [-6550, 4400, 0];
-			#endif
-
-			// naievil -- NX just doesn't look right
-			#ifdef NX
-			return [-6550, 11250, 0];
-			#endif
 		case W_PPSH:
 		case W_REAPER:
 			return [-11000, 3700, 0];
@@ -1516,33 +1509,13 @@ vector GetWeaponADSOfs_PSP(float wep) =
 			return [-0400, -200, 0];
 		case W_STG:
 		case W_SPATZ:
-
-			#ifdef PSP
 			return [-14534, 8920, 0];
-			#endif
-
-			#ifdef NX
-			return [-14534, 19920, 0];
-			#endif
 		case W_M1:
 		case W_M1000:
-
-			#ifdef PSP
 			return [-2860, 2000, 0];
-			#endif
-
-			#ifdef NX
-			return [-2860, 2400, 0];
-			#endif
 		case W_BROWNING:
 		case W_ACCELERATOR:
-			#ifdef PSP
-				return [-15200, 11620, 0];
-			#endif 
-
-			#ifdef NX
-				return [-15700, 41220, 0];
-			#endif
+			return [-15200, 11620, 0];
 		case W_PTRS:
 		case W_PENETRATOR:
 			return [-14000, 5386.9, 0];
@@ -2889,7 +2862,6 @@ float(float wep)  EqualPapWeapon =
 
 void (float wep, float anim_style, float dualwep, float curweaponframe)	PlayWeaponSound =
 {
-#ifndef NX
 	if (anim_style == KNIFE) {
 		if (curweaponframe == 6) {
 			self.punchangle_x = -2;
@@ -2899,7 +2871,7 @@ void (float wep, float anim_style, float dualwep, float curweaponframe)	PlayWeap
 			self.punchangle_y = 10;
 		}
 	}
-#endif
+
 	if (anim_style == FIRE)
 	{
 		if (wep == W_KAR || wep == W_ARMAGEDDON || wep == W_KAR_SCOPE || wep == W_HEADCRACKER)
