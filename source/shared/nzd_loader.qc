@@ -44,6 +44,7 @@ void() NZD_LoadDefaultSettings =
     G_SOUNDS.ROUND_END = "sounds/rounds/eround.wav";
     G_SOUNDS.ROUND_NEW_DOG = "sounds/rounds/droundstart.wav";
     G_SOUNDS.ROUND_END_DOG = "sounds/rounds/droundend.wav";
+    G_SOUNDS.GAME_OVER = "sounds/music/end.wav";
     G_SOUNDS.PU_DROP = "sounds/pu/drop.wav";
     G_SOUNDS.PU_LOOP = "sounds/pu/powerup.wav";
     G_SOUNDS.PU_PICKUP = "sounds/pu/pickup.wav";
@@ -291,6 +292,9 @@ void() NZD_Load =
                     break;
                 case "earn_points_while_down":
                     G_POINTDOWN = stof(argv(2));
+                    break;
+                case "end_game_animation":
+                    point = 5;
                     break;
                 case "headshots_only":
                     G_HEADONLY = stof(argv(2));
@@ -731,6 +735,39 @@ void() NZD_Load =
                     #ifndef FTE
                     UpdateHUDString(29, strzone(argv(2)));
                     #endif
+                    break;
+                default:
+                    break;
+            }
+        }
+        // End Game Animation
+        else if (point == 5) {
+            // Ignore the Starting Bracked
+            if (h == "[")
+                continue;
+            // End on End Bracket
+            if (h == "]") {
+                point = 0;
+                continue;
+            }
+
+            tokenize(h);
+
+            switch(argv(0)) {
+                case "model":
+                    G_ENDANIM.view_model = strzone(argv(2));
+                    break;
+                case "sound":
+                    G_ENDANIM.sound = strzone(argv(2));
+                    break;
+                case "start_frame":
+                    G_ENDANIM.start_frame = stof(argv(2));
+                    break;
+                case "end_frame":
+                    G_ENDANIM.end_frame = stof(argv(2));
+                    break;
+                case "skin":
+                    G_ENDANIM.weapon_skin = stof(argv(2));
                     break;
                 default:
                     break;

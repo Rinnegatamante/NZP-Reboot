@@ -1,12 +1,14 @@
 spawn
 {
     starting_points: 500
+    
     starting_weapon
     [
         1
         8
         32
     ]
+
     starting_perks
     [
     ]
@@ -21,7 +23,9 @@ sounds
         end: sounds/rounds/eround.wav
         new_dog: sounds/rounds/droundstart.wav
         end_dog: sounds/rounds/droundend.wav
+        game_over: sounds/music/end.wav
     ]
+
     powerups
     [
         drop: sounds/pu/drop.wav
@@ -33,6 +37,7 @@ sounds
         pu_nuke: sounds/pu/nuke.wav
         pu_maxammo: sounds/pu/maxammo.wav
     ]
+
     zombies
     [
         attack_sound_count: 8
@@ -46,6 +51,7 @@ sounds
         walk_sound_count: 10
         walk: sounds/zombie/w
     ]
+
     misc
     [
         ching: sounds/misc/ching.wav
@@ -103,6 +109,15 @@ player
     downed_bleedout_time: 45
     lose_perks_on_down: 1
     earn_points_while_down: 0
+
+    end_game_animation
+    [
+        model: models/machines/v_perk.mdl
+        sound: sounds/machines/perk_drink.wav
+        start_frame: 0
+        end_frame: 22
+        skin: 2
+    ]
 }
 
 hud
