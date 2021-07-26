@@ -103,7 +103,7 @@ void() NZD_LoadDefaultSettings =
     G_HUD.ROUND_NUMBER[8] = "gfx/hud/r_num8";
     G_HUD.ROUND_NUMBER[9] = "gfx/hud/r_num9";
     #endif
-    #ifdef PSP
+    #ifndef FTE
     UpdateHUDByte(0, 0);
     UpdateHUDByte(1, 1);
     UpdateHUDString(0, "gfx/hud/revive");
@@ -480,7 +480,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HORPERKS = stof(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDByte(0, stof(argv(2)));
                     #endif
                     break;
@@ -488,7 +488,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_USETALLIES = stof(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDByte(1, stof(argv(2)));
                     #endif
                     break;
@@ -496,7 +496,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_REVIVE = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(0, strzone(argv(2)));
                     #endif
                     break;
@@ -504,7 +504,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_JUGG = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(1, strzone(argv(2)));
                     #endif
                     break;
@@ -512,7 +512,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_SPEED = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(2, strzone(argv(2)));
                     #endif
                     break;
@@ -520,7 +520,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_DOUBLE = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(3, strzone(argv(2)));
                     #endif
                     break;
@@ -528,7 +528,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_STAMIN = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(4, strzone(argv(2)));
                     #endif
                     break;
@@ -536,7 +536,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_FLOPPER = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(5, strzone(argv(2)));
                     #endif
                     break;
@@ -544,7 +544,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_DEADSHOT = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(6, strzone(argv(2)));
                     #endif
                     break;
@@ -552,7 +552,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PERK_MULEKICK = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(7, strzone(argv(2)));
                     #endif
                     break;
@@ -560,7 +560,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PU_INSTAKILL = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(8, strzone(argv(2)));
                     #endif
                     break;
@@ -568,7 +568,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.PU_2X = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(9, strzone(argv(2)));
                     #endif
                     break;
@@ -576,7 +576,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.MISC_BLOOD = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(10, strzone(argv(2)));
                     #endif
                     break;
@@ -584,7 +584,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.MISC_BETTY = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(11, strzone(argv(2)));
                     #endif
                     break;
@@ -592,7 +592,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.MISC_GRENADE = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(12, strzone(argv(2)));
                     #endif
                     break;
@@ -600,7 +600,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.MISC_HITMARKER = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(13, strzone(argv(2)));
                     #endif
                     break;
@@ -608,7 +608,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.MISC_MONEYBACK = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(14, strzone(argv(2)));
                     #endif
                     break;
@@ -616,7 +616,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_TALLY[0] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(15, strzone(argv(2)));
                     #endif
                     break;
@@ -624,7 +624,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_TALLY[1] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(16, strzone(argv(2)));
                     #endif
                     break;
@@ -632,7 +632,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_TALLY[2] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(17, strzone(argv(2)));
                     #endif
                     break;
@@ -640,7 +640,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_TALLY[3] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(18, strzone(argv(2)));
                     #endif
                     break;
@@ -648,7 +648,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_TALLY[4] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(19, strzone(argv(2)));
                     #endif
                     break;
@@ -656,7 +656,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[0] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(20, strzone(argv(2)));
                     #endif
                     break;
@@ -664,7 +664,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[1] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(21, strzone(argv(2)));
                     #endif
                     break;
@@ -672,7 +672,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[2] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(22, strzone(argv(2)));
                     #endif
                     break;
@@ -680,7 +680,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[3] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(23, strzone(argv(2)));
                     #endif
                     break;
@@ -688,7 +688,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[4] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(24, strzone(argv(2)));
                     #endif
                     break;
@@ -696,7 +696,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[5] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(25, strzone(argv(2)));
                     #endif
                     break;
@@ -704,7 +704,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[6] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(26, strzone(argv(2)));
                     #endif
                     break;
@@ -712,7 +712,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[7] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(27, strzone(argv(2)));
                     #endif
                     break;
@@ -720,7 +720,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[8] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(28, strzone(argv(2)));
                     #endif
                     break;
@@ -728,7 +728,7 @@ void() NZD_Load =
                     #ifdef CLIENT
                     G_HUD.ROUND_NUMBER[9] = strzone(argv(2));
                     #endif
-                    #ifdef PSP
+                    #ifndef FTE
                     UpdateHUDString(29, strzone(argv(2)));
                     #endif
                     break;

@@ -263,9 +263,7 @@ void() worldspawn =
 	mappath = strcat("maps/", mapname);
 	mappath = strzone(mappath);
 
-	#ifndef NX
 	NZD_Load();
-	#endif
 
 	precaches();
 	LightStyles_setup();
