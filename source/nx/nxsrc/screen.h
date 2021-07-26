@@ -41,6 +41,8 @@ void SCR_EndLoadingPlaque (void);
 
 int SCR_ModalMessage (const char *text, float timeout); //johnfitz -- added timeout
 
+qpic_t *GetButtonIcon (char *buttonname);
+
 extern	float		scr_con_current;
 extern	float		scr_conlines;		// lines of console to display
 

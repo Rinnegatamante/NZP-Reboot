@@ -568,12 +568,6 @@ static void SCR_CalcRefdef (void)
 	if (scr_viewsize.value > 120)
 		Cvar_SetQuick (&scr_viewsize, "120");
 
-// bound fov
-	if (scr_fov.value < 10)
-		Cvar_SetQuick (&scr_fov, "10");
-	if (scr_fov.value > 170)
-		Cvar_SetQuick (&scr_fov, "170");
-
 	vid.recalc_refdef = 0;
 
 	//johnfitz -- rewrote this section
@@ -1160,9 +1154,10 @@ int CrossHairMaxSpread (void)
 Draw_Crosshair
 ================
 */
+extern qboolean paused_hack;
 void SCR_DrawCrosshair (void)
 {
-	if (cl.stats[STAT_HEALTH] < 20) {
+	if (cl.stats[STAT_HEALTH] < 20 || paused_hack == true) {
 		return;
 	}
 

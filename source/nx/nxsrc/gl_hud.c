@@ -64,6 +64,8 @@ int alphabling = 0;
 float round_center_x;
 float round_center_y;
 
+extern qboolean paused_hack;
+
 double HUD_Change_time;//hide hud when not chagned
 
 typedef struct
@@ -1250,7 +1252,7 @@ void HUD_Weapon (void)
 
 
 void HUD_Draw (void) {
-	if (key_dest == key_menu_pause) {
+	if (key_dest == key_menu_pause || paused_hack == true) {
 		return;
 	}
 

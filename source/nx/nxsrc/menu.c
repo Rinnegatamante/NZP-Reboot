@@ -24,8 +24,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "bgmusic.h"
 #include <dirent.h>
 
+// anti-enum propaganda
+#define OPT_CSETTING_LSENS 		420
+#define OPT_CSETTING_LACC 		421
+#define OPT_GSETTING_MAXFPS 	422
+#define OPT_GSETTING_FOV 		423
+#define OPT_GSETTING_GAMMA 		424
+// end propagating
+
 extern cvar_t	waypoint_mode;
 extern cvar_t	in_aimassist;
+extern cvar_t 	joy_invert;
+extern cvar_t 	crosshair;
+extern cvar_t 	scr_showfps;
+extern cvar_t 	host_maxfps;
+extern cvar_t 	r_fullbright;
+extern cvar_t 	gl_texturemode;
+extern cvar_t 	scr_fov;
 
 extern int loadingScreen;
 extern int ShowBlslogo;
@@ -40,7 +55,32 @@ void (*vid_menucmdfn)(void); //johnfitz
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
+qboolean paused_hack;
+
+typedef struct
+{
+	int 		occupied;
+	int 	 	map_allow_game_settings;
+	int 	 	map_use_thumbnail;
+	char* 		map_name;
+	char* 		map_name_pretty;
+	char* 		map_desc_1;
+	char* 		map_desc_2;
+	char* 		map_desc_3;
+	char* 		map_desc_4;
+	char* 		map_desc_5;
+	char* 		map_desc_6;
+	char* 		map_desc_7;
+	char* 		map_desc_8;
+	char* 		map_author;
+	char* 		map_thumbnail_path;
+} usermap_t;
+
+usermap_t custom_maps[50];
+
 enum m_state_e m_state;
+
+int 	old_m_state;
 
 void M_Start_Menu_f (void);
 
@@ -59,6 +99,8 @@ void M_Menu_Main_f (void);
 		void M_Menu_ServerList_f (void);
 	void M_Menu_Options_f (void);
 		void M_Menu_Keys_f (void);
+		void M_Control_Settings_f (void);
+		void M_Graphics_Settings_f (void);
 		void M_Menu_Video_f (void);
 	void M_Menu_Credits_f (void);
 	void M_Menu_Quit_f (void);
@@ -76,6 +118,8 @@ void M_Main_Draw (void);
 	void M_Options_Draw (void);
 		void M_OSK_Draw (void);
 		void M_Keys_Draw (void);
+		void M_Control_Settings_Draw (void);
+		void M_Graphics_Settings_Draw (void);
 		void M_Video_Draw (void);
 	void M_Credits_Draw (void);
 	void M_Quit_Draw (void);
@@ -93,6 +137,8 @@ void M_Main_Key (int key);
 		void M_ServerList_Key (int key);
 	void M_Options_Key (int key);
 		void M_Keys_Key (int key);
+		void M_Control_Settings_Key (int key);
+		void M_Graphics_Settings_Key (int key);
 		void M_Video_Key (int key);
 	void M_Credits_Key (int key);
 	void M_Quit_Key (int key);
@@ -228,29 +274,20 @@ void M_DrawTextBox (int x, int y, int width, int lines)
 // naievil: TODO -- fading cyclical background?
 
 void Menu_Background_Draw (int type) {
-
-	qpic_t *p;
-	float alpha = 1;
+	qpic_t *bg;
+	int i;
 
 	switch(type) {
-		case MENU_START:
-			p = Draw_CachePic ("gfx/menu/start_background.tga");
-
-		case MENU_PAUSE:
-			p = Draw_CachePic ("gfx/menu/pause_background.tga"); 
-			alpha = 0.75;
-			break;
-
 		case MENU_MAIN:
-		case MENU_DEFAULT:
-		default:
-			p = Draw_CachePic ("gfx/menu/menu_background.tga"); 
+			bg = Draw_CachePic("gfx/menu/menu_background.tga");
 			break;
-
+		default: 
+			bg = Draw_CachePic("gfx/menu/menu_background.tga");
+			break;
 	}
 
-	Draw_AlphaPic (0, vid.height * 0.5, p, alpha);
-
+	if (key_dest != key_menu_pause && old_m_state != m_paused_menu)
+		Draw_StretchPic(0, vid.height * 0.5, bg, vid.width/2, vid.height/2);
 }
 
 //=============================================================================
@@ -304,57 +341,51 @@ void M_Paused_Menu_f (void) {
 int M_Paused_Cusor;
 
 void M_Paused_Menu_Draw (void) {
-	int x_offset = 8;
+	paused_hack = true;
+	int y = vid.height * 0.5;
 
-	char *s1 = "Resume";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35)/2)), s1);
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
- 	char *s2 = "Restart";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)), s2);
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "PAUSED", 1, 1, 1, 1, 3.0f);
 
- 	char *s3 = "Options";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.15)/2)), s3);
+	// Resume
+	if (M_Paused_Cusor == 0)
+ 		Draw_ColoredStringScale(10, y + 190, "Resume", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 190, "Resume", 1, 1, 1, 1, 1.5f);
 
- 	char *s4 = "Quit";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.3)/2)), s4);
+	// Restart
+	if (M_Paused_Cusor == 1)
+ 		Draw_ColoredStringScale(10, y + 205, "Restart", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 205, "Restart", 1, 1, 1, 1, 1.5f);
 
- 	switch(M_Paused_Cusor) {
+	// Settings
+	if (M_Paused_Cusor == 2)
+ 		Draw_ColoredStringScale(10, y + 220, "Settings", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 220, "Settings", 1, 1, 1, 1, 1.5f);
 
- 		case 0:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.00)/2)) - 2*LINE_HEIGHT, strlen(s1)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.00)/2)) + 2*LINE_HEIGHT + 8, strlen(s1)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 1:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)) - 2*LINE_HEIGHT, strlen(s2)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)) + 2*LINE_HEIGHT + 8, strlen(s2)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 2:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)) - 2*LINE_HEIGHT, strlen(s3)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)) + 2*LINE_HEIGHT + 8, strlen(s3)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 3:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.3)/2)) - 2*LINE_HEIGHT, strlen(s4)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.3)/2)) + 2*LINE_HEIGHT + 8, strlen(s4)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		default:
- 			break;
- 	}
+	// Main Menu
+	if (M_Paused_Cusor == 3)
+ 		Draw_ColoredStringScale(10, y + 235, "Main Menu", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 235, "Main Menu", 1, 1, 1, 1, 1.5f);
 }
 
 void M_Paused_Menu_Key (int key)
 {
 	switch (key)
 	{
-	case K_BBUTTON:
+	/*case K_BBUTTON:
 	case K_ESCAPE:
+		paused_hack = false;
 		key_dest = key_game;
 		m_state = m_none;
 		break;
-
+*/
 	case K_DOWNARROW:
 		S_LocalSound ("sounds/menu/navigate.wav");
         if (++M_Paused_Cusor >= Max_Paused_Items)
@@ -375,6 +406,7 @@ void M_Paused_Menu_Key (int key)
 		{
 		case 0:
 			// Resume
+			paused_hack = false;
 			key_dest = key_game;
 			m_state = m_none;
 			break;
@@ -387,6 +419,7 @@ void M_Paused_Menu_Key (int key)
 			M_Menu_Options_f();
 			break;
 		case 3:
+			paused_hack = false;
 			// This is supposed to be to exit the map
 			M_Menu_Exit_f();
 			break;
@@ -445,54 +478,76 @@ void M_Menu_Main_f (void)
 
 void M_Main_Draw (void)
 {
-	int x_offset = 8;
+	int y = vid.height * 0.5;
 
-	char *s1 = "Single Player";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35)/2)), s1);
+	// Menu Background
+	menu_bk = Draw_CachePic("gfx/menu/menu_background.tga");
+	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
 
- 	char *s2 = "Multiplayer";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)), s2);
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
- 	char *s3 = "Options";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.15)/2)), s3);
+	// Version String
+	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
 
- 	char *s4 = "Help";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.225)/2)), s4);
-
- 	char *s5 = "Quit";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.3)/2)), s5);
-
- 	switch(m_main_cursor) {
-
- 		case 0:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.00)/2)) - 2*LINE_HEIGHT, strlen(s1)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.00)/2)) + 2*LINE_HEIGHT + 8, strlen(s1)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 1:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)) - 2*LINE_HEIGHT, strlen(s2)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)) + 2*LINE_HEIGHT + 8, strlen(s2)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 2:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)) - 2*LINE_HEIGHT, strlen(s3)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)) + 2*LINE_HEIGHT + 8, strlen(s3)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 3:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.225)/2)) - 2*LINE_HEIGHT, strlen(s4)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.225)/2)) + 2*LINE_HEIGHT + 8, strlen(s4)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
-
- 		case 4:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.3)/2)) - 2*LINE_HEIGHT, strlen(s5)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.3)/2)) + 2*LINE_HEIGHT + 8, strlen(s5)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "MAIN MENU", 1, 1, 1, 1, 3.0f);
+	
+	// Solo
+	if (m_main_cursor == 0)
+ 		Draw_ColoredStringScale(10, y + 55, "Solo", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 55, "Solo", 1, 1, 1, 1, 1.5f);
 
 
- 		default:
- 			break;
- 	}
+	// Co-Op (Unfinished, so non-selectable)
+	Draw_ColoredStringScale(10, y + 70, "Co-Op (Coming Soon!)", 0.5, 0.5, 0.5, 1, 1.5f);
+
+	// Divider
+	Draw_FillByColor(10, y + 90, 240, 3, 1, 1);
+
+	// Settings
+	if (m_main_cursor == 1)
+		Draw_ColoredStringScale(10, y + 100, "Settings", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 100, "Settings", 1, 1, 1, 1, 1.5f);
+
+	// Achievements
+	if (m_main_cursor == 2)
+		Draw_ColoredStringScale(10, y + 115, "Achievements", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 115, "Achievements", 1, 1, 1, 1, 1.5f);
+	
+
+	// Divider
+	Draw_FillByColor(10, y + 135, 240, 3, 1, 1);
+
+	// Credits
+	if (m_main_cursor == 3)
+		Draw_ColoredStringScale(10, y + 145, "Credits", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 145, "Credits", 1, 1, 1, 1, 1.5f);
+
+	// Divider
+	Draw_FillByColor(10, y + 165, 240, 3, 1, 1);
+
+	// Exit
+	if (m_main_cursor == 4)
+		Draw_ColoredStringScale(10, y + 175, "Exit", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 175, "Exit", 1, 1, 1, 1, 1.5f);
+
+		// future note: 335 = back
+
+
+	switch (m_main_cursor) {
+		case 0: Draw_ColoredStringScale(10, y + 305, "Take on the Hordes by yourself.", 1, 1, 1, 1, 1.5f); break;
+		case 1: Draw_ColoredStringScale(10, y + 305, "Adjust your Settings to Optimize your Experience.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 305, "View locked or unlocked Achievements.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 305, "See who made NZ:P possible.", 1, 1, 1, 1, 1.5f); break;
+		case 4: Draw_ColoredStringScale(10, y + 305, "Return to Horizon (SwitchOS).", 1, 1, 1, 1, 1.5f); break;
+		default: break;
+	}
 }
 
 
@@ -536,11 +591,11 @@ void M_Main_Key (int key)
 			break;
 
 		case 1:
-			//M_Menu_MultiPlayer_f ();
+			M_Menu_Options_f ();
 			break;
 
 		case 2:
-			M_Menu_Options_f ();
+			//M_Menu_Achievements_f ();
 			break;
 
 		case 3:
@@ -589,9 +644,9 @@ void M_Restart_Key (int key)
 	case K_ABUTTON:
 		key_dest = key_game;
 		m_state = m_none;
+		paused_hack = false;
 		Cbuf_AddText ("restart\n");
 		break;
-
 	default:
 		break;
 	}
@@ -636,6 +691,7 @@ void M_Menu_Exit_f (void)
 {
 	wasInMenus = (key_dest == key_menu_pause);
 	key_dest = key_menu;
+	paused_hack = false;
 	m_state = m_exit;
 	m_entersound = true;
 }
@@ -654,6 +710,7 @@ void M_Exit_Key (int key)
 	case K_ENTER:
 	case K_ABUTTON:
 		Cbuf_AddText("disconnect\n");
+		paused_hack = false;
 		M_Menu_Main_f();
 		break;
 
@@ -695,55 +752,97 @@ void M_Menu_SinglePlayer_f (void)
 	m_entersound = true;
 }
 
-
 void M_SinglePlayer_Draw (void)
 {
-	int x_offset = 8;
+	qpic_t *menu_ndu 	= Draw_CachePic("gfx/menu/nacht_der_untoten.tga");
+	//qpic_t *menu_kn 	= Draw_CachePic("gfx/menu/kino_der_toten.tga");
+	qpic_t *menu_wh 	= Draw_CachePic("gfx/menu/warehouse.tga");
+	//qpic_t* menu_wn 	= Draw_CachePic("gfx/menu/wahnsinn.tga");
+	qpic_t* menu_ch 	= Draw_CachePic("gfx/menu/christmas_special.tga");
+	qpic_t* menu_custom = Draw_CachePic("gfx/menu/custom.tga");
 
-	char *s1 = "Nacht Der Untoten";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35)/2)), s1);
+	int y = vid.height * 0.5;
+	paused_hack = false;
 
-	char *s2 = "Warehouse";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)), s2);
+	// Menu Background
+	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
 
- 	char *s3 = "Christmas Special";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)), s3);
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
- 	char *s4 = "Custom Maps";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.225)/2)), s4);
+	// Version String
+	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
 
- 	char *s5 = "Back";
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.8)/2)), s5);
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "SOLO", 1, 1, 1, 1, 3.0f);
 
- 	switch(m_singleplayer_cursor) {
- 		case 0:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.00)/2)) - 2*LINE_HEIGHT, strlen(s1)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.00)/2)) + 2*LINE_HEIGHT + 8, strlen(s1)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
+	// Nacht der Untoten
+	if (m_singleplayer_cursor == 0)
+ 		Draw_ColoredStringScale(10, y + 55, "Nacht der Untoten", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 55, "Nacht der Untoten", 1, 1, 1, 1, 1.5f);
 
- 		case 1:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)) - 2*LINE_HEIGHT, strlen(s2)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.075)/2)) + 2*LINE_HEIGHT + 8, strlen(s2)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
+	// Kino der Toten
+	Draw_ColoredStringScale(10, y + 70, "Kino der Toten", 0.5, 0.5, 0.5, 1, 1.5f);
 
-		case 2:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)) - 2*LINE_HEIGHT, strlen(s3)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.150)/2)) + 2*LINE_HEIGHT + 8, strlen(s3)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
+	// Warehouse
+	if (m_singleplayer_cursor == 1)
+ 		Draw_ColoredStringScale(10, y + 85, "Warehouse", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 85, "Warehouse", 1, 1, 1, 1, 1.5f);
 
- 		case 3:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.225)/2)) - 2*LINE_HEIGHT, strlen(s4)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.225)/2)) + 2*LINE_HEIGHT + 8, strlen(s4)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
+	// Wahnsinn
+	Draw_ColoredStringScale(10, y + 100, "Wahnsinn", 0.5, 0.5, 0.5, 1, 1.5f);
 
- 		case 4:
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.8)/2)) - 2*LINE_HEIGHT, strlen(s5)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.8)/2)) + 2*LINE_HEIGHT + 8, strlen(s5)*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			break;
+	// Christmas Special
+	if (m_singleplayer_cursor == 2)
+ 		Draw_ColoredStringScale(10, y + 115, "Christmas Special", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 115, "Christmas Special", 1, 1, 1, 1, 1.5f);
 
- 		default:
- 			break;
- 	}
+	// Divider
+	Draw_FillByColor(10, y + 135, 240, 3, 1, 1);
+
+	// Custom Maps
+	if (m_singleplayer_cursor == 3)
+ 		Draw_ColoredStringScale(10, y + 145, "Custom Maps", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 145, "Custom Maps", 1, 1, 1, 1, 1.5f);
+
+	// Back
+	if (m_singleplayer_cursor == 4)
+ 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
+
+	// Map description & pic
+	switch (m_singleplayer_cursor) {
+		case 0:
+			Draw_StretchPic(290, y + 55, menu_ndu, 300, 170);
+			Draw_ColoredStringScale(245, y + 235, "Lock and Load; Crashed Plane.", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 250, "Divided. Thousands of Undead.", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 265, "This is the Night of the Dead.", 1, 1, 1, 1, 1.5f);
+			break;
+		case 1: 
+			Draw_StretchPic(290, y + 55, menu_wh, 300, 170);
+			Draw_ColoredStringScale(245, y + 235, "Old Warehouse full of Zombies!", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 250, "Fight your way to the Power", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 265, "Switch through the Hordes!", 1, 1, 1, 1, 1.5f);
+			break;
+		case 2: 
+			Draw_StretchPic(290, y + 55, menu_ch, 300, 170);
+			Draw_ColoredStringScale(245, y + 235, "No Santa this year. Though we're", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 250, "sure you will get presents from", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 265, "the undead! Will you accept them?", 1, 1, 1, 1, 1.5f);
+			break;
+		case 3: 
+			Draw_StretchPic(290, y + 55, menu_custom, 300, 170);
+			Draw_ColoredStringScale(245, y + 235, "Custom Maps made by Community", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 250, "Members on the Fourm and on", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(245, y + 265, "Discord!", 1, 1, 1, 1, 1.5f);
+			break;
+		default: break;
+	}
 }
 
 
@@ -830,6 +929,9 @@ void M_SinglePlayer_Key (int key)
 int m_maps_cursor;
 int	MAP_ITEMS;
 int user_maps_num = 0;
+int current_custom_map_page;
+int custom_map_pages;
+int multiplier;
 char  user_levels[256][MAX_QPATH];
 
 void M_Menu_Maps_f (void) 
@@ -838,27 +940,133 @@ void M_Menu_Maps_f (void)
 	key_dest = key_menu;
 	m_state = m_maps;
 	m_entersound = true;
-	MAP_ITEMS = user_maps_num;
+	MAP_ITEMS = 13;
+	current_custom_map_page = 1;
 }
 
 void M_Menu_Maps_Draw (void)
 {
-	int x_offset = 8;
+	int y = vid.height * 0.5;
+	qpic_t* menu_cuthum;
 
-	char *s1 = "Custom Maps";
-	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.25)/2)), s1);
+	// Menu Background
+	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
 
-	for (int j=0; j<user_maps_num; j++)
-	{
-		if (m_maps_cursor == j) {
-			// Draw lines
-			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.05*j)/2)) - 2*LINE_HEIGHT, strlen(user_levels[j])*8, LINE_HEIGHT, LINE_COLOR, 1); 
- 			Draw_Fill ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.05*j)/2)) + 2*LINE_HEIGHT + 8, strlen(user_levels[j])*8, LINE_HEIGHT, LINE_COLOR, 1); 
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
+
+	// Version String
+	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "CUSTOM MAPS", 1, 1, 1, 1, 3.0f);
+
+	int line_increment;
+	line_increment = 0;
+
+	if (current_custom_map_page > 1)
+		multiplier = (current_custom_map_page - 1) * 15;
+	else
+		multiplier = 0;
+
+	for (int i = 0; i < 15; i++) {
+		if (custom_maps[i + multiplier].occupied == false)
+			continue;
+
+		if (m_maps_cursor == i) {
+			if (custom_maps[i + multiplier].map_use_thumbnail == 1) {
+				menu_cuthum = Draw_CachePic(custom_maps[i + multiplier].map_thumbnail_path);
+				Draw_StretchPic(305, y + 55, menu_cuthum, 274, 155);
+			}
+
+			if (custom_maps[i + multiplier].map_name_pretty != 0)
+				Draw_ColoredStringScale(10, y + (55 + (15 * i)), custom_maps[i + multiplier].map_name_pretty, 1, 0, 0, 1, 1.5f);
+			else
+				Draw_ColoredStringScale(10, y + (55 + (15 * i)), custom_maps[i + multiplier].map_name, 1, 0, 0, 1, 1.5f);
+
+			if (custom_maps[i + multiplier].map_desc_1 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_1, " ") != 0) {
+					Draw_ColoredStringScale(245, y + 215, custom_maps[i + multiplier].map_desc_1, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_2 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_2, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 230, custom_maps[i + multiplier].map_desc_2, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_3 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_3, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 245, custom_maps[i + multiplier].map_desc_3, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_4 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_4, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 260, custom_maps[i + multiplier].map_desc_4, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_5 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_5, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 275, custom_maps[i + multiplier].map_desc_5, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_6 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_6, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 290, custom_maps[i + multiplier].map_desc_6, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_7 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_7, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 305, custom_maps[i + multiplier].map_desc_7, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_desc_8 != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_desc_8, " ") != 0) {
+					line_increment++;
+					Draw_ColoredStringScale(245, y + 320, custom_maps[i + multiplier].map_desc_8, 1, 1, 1, 1, 1.5f);
+				}
+			}
+			if (custom_maps[i + multiplier].map_author != 0) {
+				if (strcmp(custom_maps[i + multiplier].map_author, " ") != 0) {
+					int author_offset = 230 + (15 * line_increment);
+					Draw_ColoredStringScale(245, y + author_offset, custom_maps[i + multiplier].map_author, 1, 1, 0, 1, 1.5f);
+				}
+			}
+		} else {
+			if (custom_maps[i + multiplier].map_name_pretty != 0)
+				Draw_ColoredStringScale(10, y + (55 + (15 * i)), custom_maps[i + multiplier].map_name_pretty, 1, 1, 1, 1, 1.5f);
+			else
+				Draw_ColoredStringScale(10, y + (55 + (15 * i)), custom_maps[i + multiplier].map_name, 1, 1, 1, 1, 1.5f);
 		}
-
-		Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 0.05*j)/2)), user_levels[j]);
 	}
 
+	if (current_custom_map_page != custom_map_pages) {
+		if (m_maps_cursor == 15)
+			Draw_ColoredStringScale(10, y + 305, "Next Page", 1, 0, 0, 1, 1.5f);
+		else
+			Draw_ColoredStringScale(10, y + 305, "Next Page", 1, 1, 1, 1, 1.5f);
+	} else {
+		Draw_ColoredStringScale(10, y + 305, "Next Page", 0.5, 0.5, 0.5, 1, 1.5f);
+	}
+
+	if (current_custom_map_page != 1) {
+		if (m_maps_cursor == 16)
+			Draw_ColoredStringScale(10, y + 320, "Previous Page", 1, 0, 0, 1, 1.5f);
+		else
+			Draw_ColoredStringScale(10, y + 320, "Previous Page", 1, 1, 1, 1, 1.5f);
+	} else {
+		Draw_ColoredStringScale(10, y + 320, "Previous Page", 0.5, 0.5, 0.5, 1, 1.5f);
+	}
+
+	if (m_maps_cursor == 17)
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
 }
 
 
@@ -870,33 +1078,67 @@ void M_Menu_Maps_Key (int key)
 	case K_BBUTTON:
 		M_Menu_SinglePlayer_f ();
 		break;
-
 	case K_DOWNARROW:
 		S_LocalSound ("sounds/menu/navigate.wav");
-		if (++m_maps_cursor >= MAP_ITEMS)
+		m_maps_cursor++;
+
+		if (m_maps_cursor < 14 && custom_maps[m_maps_cursor + multiplier].occupied == false) {
+			m_maps_cursor = 15;
+		}
+
+		if (m_maps_cursor == 15 && current_custom_map_page == custom_map_pages)
+			m_maps_cursor = 16;
+		
+		if (m_maps_cursor == 16 && current_custom_map_page == 1)
+			m_maps_cursor = 17;
+
+		if (m_maps_cursor >= 18)
 			m_maps_cursor = 0;
 		break;
-
 	case K_UPARROW:
 		S_LocalSound ("sounds/menu/navigate.wav");
-		if (--m_maps_cursor < 0)
-			m_maps_cursor = MAP_ITEMS - 1;
-		break;
+		m_maps_cursor--;
 
+		if (m_maps_cursor < 0)
+			m_maps_cursor = 17;
+
+		if (m_maps_cursor == 16 && current_custom_map_page == 1)
+			m_maps_cursor = 15;
+
+		if (m_maps_cursor == 15 && current_custom_map_page == custom_map_pages)
+			m_maps_cursor = 14;
+
+		if (m_maps_cursor <= 14 && custom_maps[m_maps_cursor + multiplier].occupied == false) {
+			for (int i = 14; i > -1; i--) {
+				if (custom_maps[i + multiplier].occupied == true) {
+					m_maps_cursor = i;
+					break;
+				}
+			}
+		}
+		break;
 	case K_ENTER:
 	case K_KP_ENTER:
 	case K_ABUTTON:
 		m_entersound = true;
 
-		if (sv.active)
-			Cbuf_AddText ("disconnect\n");
-		
-		Cbuf_AddText ("maxplayers 1\n");
-		Cbuf_AddText ("deathmatch 0\n");
-		Cbuf_AddText ("coop 0\n"); 
-		char map_selection[MAX_QPATH];
-		strcpy(map_selection, user_levels[m_maps_cursor]);
-		Cbuf_AddText (va("map %s\n", user_levels[m_maps_cursor]));
+		if (m_maps_cursor == 17) {
+			M_Menu_SinglePlayer_f ();
+		} else if (m_maps_cursor == 16) {
+			current_custom_map_page--;
+		} else if (m_maps_cursor == 15) {
+			current_custom_map_page++;
+		} else {
+			if (sv.active)
+				Cbuf_AddText ("disconnect\n");
+			
+			Cbuf_AddText ("maxplayers 1\n");
+			Cbuf_AddText ("deathmatch 0\n");
+			Cbuf_AddText ("coop 0\n"); 
+			char map_selection[MAX_QPATH];
+			strcpy(map_selection, custom_maps[m_maps_cursor + multiplier].map_name);
+			Cbuf_AddText (va("map %s\n", custom_maps[m_maps_cursor + multiplier].map_name));
+		}
 		break;
 	}
 }
@@ -912,6 +1154,10 @@ void Map_Finder(void)
     struct dirent* ent;
 	char map_dir[MAX_OSPATH];
 
+	for (int i = 0; i < 50; i++) {
+		custom_maps[i].occupied = false;
+	}
+
 	strcpy(map_dir, strcat(cwd, "/nzp/maps"));
 	dir = opendir(map_dir);
     if(dir==NULL)
@@ -925,12 +1171,76 @@ void Map_Finder(void)
 	        if(!strcmp(COM_FileGetExtension(ent->d_name),"bsp") || !strcmp(COM_FileGetExtension(ent->d_name),"BSP")) {
 				char ntype[32];
 				COM_StripExtension(ent->d_name, ntype, sizeof(ntype));
-				sprintf(user_levels[user_maps_num],"%s", ntype);
+				custom_maps[user_maps_num].occupied = true;
+				custom_maps[user_maps_num].map_name = malloc(sizeof(char)*32);
+				sprintf(custom_maps[user_maps_num].map_name, "%s", ntype);
+
+				char* 	setting_path;
+				FILE* 	setting_file;
+
+				setting_path 									= malloc(sizeof(char)*64);
+				custom_maps[user_maps_num].map_thumbnail_path 	= malloc(sizeof(char)*64);
+
+				strcpy(setting_path, map_dir);
+				strcat(setting_path, "/");
+
+				strcpy(custom_maps[user_maps_num].map_thumbnail_path, 	"gfx/menu/custom/");
+				strcat(setting_path, 									custom_maps[user_maps_num].map_name);
+				strcat(custom_maps[user_maps_num].map_thumbnail_path, 	custom_maps[user_maps_num].map_name);
+				strcat(custom_maps[user_maps_num].map_thumbnail_path, 	".tga");
+				strcat(setting_path, 									".txt");
+
+				setting_file = fopen(setting_path, "r");
+
+				if (setting_file != NULL) {
+					int state;
+					state = 0;
+					int value;
+
+					custom_maps[user_maps_num].map_name_pretty = malloc(sizeof(char)*32);
+					custom_maps[user_maps_num].map_desc_1 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_2 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_3 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_4 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_5 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_6 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_7 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_desc_8 = malloc(sizeof(char)*40);
+					custom_maps[user_maps_num].map_author = malloc(sizeof(char)*40);
+
+					char buffer[64];
+					int bufferlen = sizeof(buffer);
+
+					while(fgets(buffer, bufferlen, setting_file)) {
+						// strip newlines
+						buffer[strcspn(buffer, "\r")] = 0;
+						buffer[strcspn(buffer, "\n")] = 0;
+
+						switch(state) {
+							case 0: strcpy(custom_maps[user_maps_num].map_name_pretty, buffer); break;
+							case 1: strcpy(custom_maps[user_maps_num].map_desc_1, buffer); break;
+							case 2: strcpy(custom_maps[user_maps_num].map_desc_2, buffer); break;
+							case 3: strcpy(custom_maps[user_maps_num].map_desc_3, buffer); break;
+							case 4: strcpy(custom_maps[user_maps_num].map_desc_4, buffer); break;
+							case 5: strcpy(custom_maps[user_maps_num].map_desc_5, buffer); break;
+							case 6: strcpy(custom_maps[user_maps_num].map_desc_6, buffer); break;
+							case 7: strcpy(custom_maps[user_maps_num].map_desc_7, buffer); break;
+							case 8: strcpy(custom_maps[user_maps_num].map_desc_8, buffer); break;
+							case 9: strcpy(custom_maps[user_maps_num].map_author, buffer); break;
+							case 10: value = 0; sscanf(buffer, "%d", &value); custom_maps[user_maps_num].map_use_thumbnail = value; break;
+							case 11: value = 0; sscanf(buffer, "%d", &value); custom_maps[user_maps_num].map_allow_game_settings = value; break;
+							default: break;
+						}
+						state++;
+					}
+					fclose(setting_file);
+				}
 				user_maps_num = user_maps_num + 1;
 			}
         }
         closedir(dir);
     }
+	custom_map_pages = (int)ceil((double)(user_maps_num + 1)/15);
 }
 
 //=============================================================================
@@ -1347,16 +1657,63 @@ enum
 #define	SLIDER_RANGE	10
 
 int		options_cursor;
-int 	old_m_state;
 void M_Menu_Options_f (void)
 {
 	IN_Deactivate(modestate == MS_WINDOWED);
-	key_dest = key_menu;
 	old_m_state = m_state;
 	m_state = m_options;
 	m_entersound = true;
 }
 
+// stupid fucking hack because i am lazy
+void M_AdjustSlidersAdvanced (int dir, int option)
+{
+	S_LocalSound ("sounds/menu/navigate.wav");
+
+	switch(option) {
+		case OPT_GSETTING_GAMMA:	// gamma
+			vid_gamma.value -= dir * 0.05;
+			if (vid_gamma.value < 0.5)
+				vid_gamma.value = 0.5;
+			if (vid_gamma.value > 1)
+				vid_gamma.value = 1;
+			Cvar_SetValue ("gamma", vid_gamma.value);
+			break;
+		case OPT_GSETTING_MAXFPS:
+			host_maxfps.value = host_maxfps.value + dir * 5;
+			if (host_maxfps.value < 30)
+				host_maxfps.value = 30;
+			if (host_maxfps.value > 65)
+				host_maxfps.value = 65;
+			Cvar_SetValue ("host_maxfps", host_maxfps.value);
+			break;
+		case OPT_GSETTING_FOV:
+			scr_fov.value += dir * 5;
+			if (scr_fov.value < 50)
+				scr_fov.value = 50;
+			if (scr_fov.value > 120 && dir > 0)
+				scr_fov.value = 120;
+			Cvar_SetValue ("fov", scr_fov.value);
+			break;
+		case OPT_CSETTING_LSENS:
+			sensitivity.value += dir * 0.5;
+			if (sensitivity.value < 1)
+				sensitivity.value = 1;
+			if (sensitivity.value > 11)
+				sensitivity.value = 11;
+			Cvar_SetValue ("sensitivity", sensitivity.value);
+			break;
+		/*case OPT_CSETTING_LACC:
+			in_acceleration.value -= dir * 0.25;
+			if (in_acceleration.value < 0.5)
+				in_acceleration.value = 0.5;
+			if (in_acceleration.value > 2)
+				in_acceleration.value = 2;
+			Cvar_SetValue ("acceleration", in_acceleration.value);
+			break;*/
+		default: break;
+	}
+}
 
 void M_AdjustSliders (int dir)
 {
@@ -1482,102 +1839,66 @@ void M_DrawCheckbox (int x, int y, int on)
 		M_Print (x, y, "off");
 }
 
+#define OPTION_ITEMS 5
+
 void M_Options_Draw (void)
 {
-	float		r, l;
+	int y = vid.height * 0.5;
 
-	// Draw the items in the order of the enum defined above:
-	// OPT_CUSTOMIZE:
-	M_Print (16, 32,			"              Controls");
-	// OPT_CONSOLE:
-	M_Print (16, 32 + 8*OPT_CONSOLE,	"          Goto console");
-	// OPT_DEFAULTS:
-	M_Print (16, 32 + 8*OPT_DEFAULTS,	"          Reset config");
+	// Menu Background
+	if (paused_hack == false)
+		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
 
-	// OPT_SCALE:
-	M_Print (16, 32 + 8*OPT_SCALE,		"                 Scale");
-	l = (vid.width / 320.0) - 1;
-	r = l > 0 ? (scr_conscale.value - 1) / l : 0;
-	M_DrawSlider (220, 32 + 8*OPT_SCALE, r);
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
-	// OPT_SCRSIZE:
-	M_Print (16, 32 + 8*OPT_SCRSIZE,	"           Screen size");
-	r = (scr_viewsize.value - 30) / (120 - 30);
-	M_DrawSlider (220, 32 + 8*OPT_SCRSIZE, r);
+	// Version String
+	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
 
-	// OPT_GAMMA:
-	M_Print (16, 32 + 8*OPT_GAMMA,		"            Brightness");
-	r = (1.0 - vid_gamma.value) / 0.5;
-	M_DrawSlider (220, 32 + 8*OPT_GAMMA, r);
-
-	// OPT_CONTRAST:
-	M_Print (16, 32 + 8*OPT_CONTRAST,	"              Contrast");
-	r = vid_contrast.value - 1.0;
-	M_DrawSlider (220, 32 + 8*OPT_CONTRAST, r);
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "SETTINGS", 1, 1, 1, 1, 3.0f);
 	
-	// OPT_MOUSESPEED:
-	M_Print (16, 32 + 8*OPT_MOUSESPEED,	"           Mouse Speed");
-	r = (sensitivity.value - 1)/10;
-	M_DrawSlider (220, 32 + 8*OPT_MOUSESPEED, r);
-
-	// OPT_SBALPHA:
-	M_Print (16, 32 + 8*OPT_SBALPHA,	"       Statusbar alpha");
-	r = (1.0 - scr_sbaralpha.value) ; // scr_sbaralpha range is 1.0 to 0.0
-	M_DrawSlider (220, 32 + 8*OPT_SBALPHA, r);
-
-	// OPT_SNDVOL:
-	M_Print (16, 32 + 8*OPT_SNDVOL,		"          Sound Volume");
-	r = sfxvolume.value;
-	M_DrawSlider (220, 32 + 8*OPT_SNDVOL, r);
-
-	// OPT_MUSICVOL:
-	M_Print (16, 32 + 8*OPT_MUSICVOL,	"          Music Volume");
-	r = bgmvolume.value;
-	M_DrawSlider (220, 32 + 8*OPT_MUSICVOL, r);
-
-	// OPT_MUSICEXT:
-	M_Print (16, 32 + 8*OPT_MUSICEXT,	"        External Music");
-	M_DrawCheckbox (220, 32 + 8*OPT_MUSICEXT, bgm_extmusic.value);
-
-	// OPT_ALWAYRUN:
-	M_Print (16, 32 + 8*OPT_ALWAYRUN,	"            Always Run");
-	if (cl_alwaysrun.value)
-		M_Print (220, 32 + 8*OPT_ALWAYRUN, "quakespasm");
-	else if (cl_forwardspeed > 200.0)
-		M_Print (220, 32 + 8*OPT_ALWAYRUN, "vanilla");
+	// Graphics Settings
+	if (options_cursor == 0)
+ 		Draw_ColoredStringScale(10, y + 55, "Graphics Settings", 1, 0, 0, 1, 1.5f);
 	else
-		M_Print (220, 32 + 8*OPT_ALWAYRUN, "off");
+		Draw_ColoredStringScale(10, y + 55, "Graphics Settings", 1, 1, 1, 1, 1.5f);
 
-	// OPT_INVMOUSE:
-	M_Print (16, 32 + 8*OPT_INVMOUSE,	"          Invert Mouse");
-	M_DrawCheckbox (220, 32 + 8*OPT_INVMOUSE, m_pitch.value < 0);
+	// Controls
+	if (options_cursor == 1)
+ 		Draw_ColoredStringScale(10, y + 70, "Controls", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 70, "Controls", 1, 1, 1, 1, 1.5f);
 
-	// OPT_ALWAYSMLOOK:
-	M_Print (16, 32 + 8*OPT_ALWAYSMLOOK,	"            Mouse Look");
-	M_DrawCheckbox (220, 32 + 8*OPT_ALWAYSMLOOK, in_mlook.state & 1);
+	// Control Settings
+	if (options_cursor == 2)
+ 		Draw_ColoredStringScale(10, y + 85, "Control Settings", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 85, "Control Settings", 1, 1, 1, 1, 1.5f);
 
-	// OPT_LOOKSPRING:
-	M_Print (16, 32 + 8*OPT_LOOKSPRING,	"            Lookspring");
-	M_DrawCheckbox (220, 32 + 8*OPT_LOOKSPRING, lookspring.value);
+	// Divider
+	Draw_FillByColor(10, y + 105, 240, 3, 1, 1);
 
-	// OPT_LOOKSTRAFE:
-	M_Print (16, 32 + 8*OPT_LOOKSTRAFE,	"            Lookstrafe");
-	M_DrawCheckbox (220, 32 + 8*OPT_LOOKSTRAFE, lookstrafe.value);
+	// Console
+	if (options_cursor == 3)
+ 		Draw_ColoredStringScale(10, y + 115, "Console", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 115, "Console", 1, 1, 1, 1, 1.5f);
 
-	// OPT_AIMASSIST:
-	M_Print (16, 32 + 8*OPT_AIMASSIST,	"            Aim Assist");
-	M_DrawCheckbox (220, 32 + 8*OPT_AIMASSIST, in_aimassist.value);
+	// Back
+	if (options_cursor == 4)
+ 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
 
-	// OPT_VIDEO:
-	if (vid_menudrawfn)
-#ifdef __SWITCH__
-		M_Print (16, 32 + 8*OPT_VIDEO,	"          Toggle 1080p");
-#else
-		M_Print (16, 32 + 8*OPT_VIDEO,	"         Video Options");
-#endif
-
-// cursor
-	M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
+	// Descriptions
+	switch(options_cursor) {
+		case 0: Draw_ColoredStringScale(10, y + 305, "Adjust settings relating to Graphical Fidelity.", 1, 1, 1, 1, 1.5f); break;
+		case 1: Draw_ColoredStringScale(10, y + 305, "Customize your Control Scheme.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust settings in relation to how NZ:P Controls.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 305, "Open the Console to input Commands.", 1, 1, 1, 1, 1.5f); break;
+		default: break;
+	}
 }
 
 
@@ -1587,103 +1908,425 @@ void M_Options_Key (int k)
 	{
 	case K_ESCAPE:
 	case K_BBUTTON:
-		if (old_m_state == m_paused_menu) {
+
+		if (paused_hack == true) {
 			M_Paused_Menu_f ();
 		} else {
 			M_Menu_Main_f ();	
 		}
-		break;
 
+		break;
 	case K_ENTER:
 	case K_KP_ENTER:
 	case K_ABUTTON:
 		m_entersound = true;
-		switch (options_cursor)
-		{
-		case OPT_CUSTOMIZE:
-			M_Menu_Keys_f ();
-			break;
-		case OPT_CONSOLE:
-			m_state = m_none;
-			Con_ToggleConsole_f ();
-			break;
-		case OPT_DEFAULTS:
-			if (SCR_ModalMessage("This will reset all controls\n"
-					"and stored cvars. Continue? (y/n)\n", 15.0f))
-			{
-				Cbuf_AddText ("resetcfg\n");
-				Cbuf_AddText ("exec default.cfg\n");
-			}
-			break;
-		case OPT_VIDEO:
-#ifdef __SWITCH__
-			Cbuf_AddText ("vid_restart\n");
-			key_dest = key_game;
-			m_state = m_none;
-			IN_Activate();
-#else
-			M_Menu_Video_f ();
-#endif
-			break;
-		default:
-			M_AdjustSliders (1);
-			break;
-		}
-		return;
 
+		switch (options_cursor) {
+			case 0:
+				M_Graphics_Settings_f();
+				break;
+			case 1:
+				M_Menu_Keys_f();
+				break;
+			case 2:
+				M_Control_Settings_f();
+				break;
+			case 3:
+				m_state = m_none;
+				paused_hack = false;
+				Con_ToggleConsole_f();
+				break;
+			case 4:
+
+				if (paused_hack == true) {
+					M_Paused_Menu_f ();
+				} else {
+					M_Menu_Main_f ();	
+				}
+
+				break;
+			default: break;
+		}
+
+		break;
 	case K_UPARROW:
 		S_LocalSound ("sounds/menu/navigate.wav");
 		options_cursor--;
-		if (options_cursor < 0)
-			options_cursor = OPTIONS_ITEMS-1;
+		if (options_cursor < 0) {
+			options_cursor = OPTION_ITEMS-1;
+		}
 		break;
-
 	case K_DOWNARROW:
 		S_LocalSound ("sounds/menu/navigate.wav");
 		options_cursor++;
-		if (options_cursor >= OPTIONS_ITEMS)
-			options_cursor = 0;
-		break;
-
-	case K_LEFTARROW:
-		M_AdjustSliders (-1);
-		break;
-
-	case K_RIGHTARROW:
-		M_AdjustSliders (1);
+        if (options_cursor >= OPTION_ITEMS)
+            options_cursor = 0;
 		break;
 	}
+}
 
-	if (options_cursor == OPTIONS_ITEMS - 1 && vid_menudrawfn == NULL)
-	{
-		if (k == K_UPARROW)
-			options_cursor = OPTIONS_ITEMS - 2;
-		else
-			options_cursor = 0;
+//
+// NZ:P Graphics Settings
+//
+
+void M_Graphics_Settings_f (void)
+{
+	IN_Deactivate(modestate == MS_WINDOWED);
+	key_dest = key_menu;
+	m_state = m_net; // lazy
+	m_entersound = true;
+}
+
+static int gsettings_cursor;
+
+#define GSETTINGS_ITEMS 		8
+
+void M_Graphics_Settings_Draw (void)
+{
+	int y = vid.height * 0.5;
+	float r;
+
+	// Menu Background
+	if (paused_hack == false)
+		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
+
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "GRAPHICS SETTINGS", 1, 1, 1, 1, 3.0f);
+
+	// Show FPS
+	if (gsettings_cursor == 0)
+		Draw_ColoredStringScale(10, y + 55, "Show FPS", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 55, "Show FPS", 1, 1, 1, 1, 1.5f);
+
+	if (scr_showfps.value == 0)
+		Draw_ColoredStringScale(300, y + 55, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 55, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Max FPS
+	if (gsettings_cursor == 1)
+		Draw_ColoredStringScale(10, y + 70, "Max FPS", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 70, "Max FPS", 1, 1, 1, 1, 1.5f);
+
+	r = (host_maxfps.value - 30.0)*(1.0/35.0);
+	M_DrawSlider (308, y + 70, r);
+
+	// Field of View
+	if (gsettings_cursor == 2)
+		Draw_ColoredStringScale(10, y + 85, "Field of View", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 85, "Field of View", 1, 1, 1, 1, 1.5f);
+	
+	r = (scr_fov.value - 50.0)*(1.0/70.0);
+	M_DrawSlider (308, y + 85, r);
+
+	// Brightness
+	if (gsettings_cursor == 3)
+		Draw_ColoredStringScale(10, y + 100, "Brightness", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 100, "Brightness", 1, 1, 1, 1, 1.5f);
+
+	r = (1.0 - vid_gamma.value) / 0.5;
+	M_DrawSlider (308, y + 100, r);
+
+	// TODO
+	Draw_ColoredStringScale(10, y + 115, "Decals", 0.5, 0.5, 0.5, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 130, "Particles", 0.5, 0.5, 0.5, 1, 1.5f);
+/*
+	// Decals
+	if (gsettings_cursor == 4)
+		Draw_ColoredStringScale(10, y + 115, "Decals", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 115, "Decals", 1, 1, 1, 1, 1.5f);
+
+	// Particles
+	if (gsettings_cursor == 5)
+		Draw_ColoredStringScale(10, y + 130, "Particles", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 130, "Particles", 1, 1, 1, 1, 1.5f);
+*/
+
+	// Fullbright
+	if (gsettings_cursor == 6)
+		Draw_ColoredStringScale(10, y + 145, "Fullbright", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 145, "Fullbright", 1, 1, 1, 1, 1.5f);
+
+	if (r_fullbright.value == 0)
+		Draw_ColoredStringScale(300, y + 145, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 145, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Retro
+	if (gsettings_cursor == 7)
+		Draw_ColoredStringScale(10, y + 160, "Retro", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 160, "Retro", 1, 1, 1, 1, 1.5f);
+
+	if (!strcmp(gl_texturemode.string, "GL_LINEAR"))
+		Draw_ColoredStringScale(300, y + 160, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 160, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Back
+	if (gsettings_cursor == 8)
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
+
+	// Descriptions
+	switch(gsettings_cursor) {
+		case 0: Draw_ColoredStringScale(10, y + 305, "Toggle Framerate Overlay.", 1, 1, 1, 1, 1.5f); break;
+		case 1: Draw_ColoredStringScale(10, y + 305, "Increase or Decrease Max Frames per Second.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust Game Field of View.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 305, "Increase or Decrease Game Brightness.", 1, 1, 1, 1, 1.5f); break;
+		case 6: Draw_ColoredStringScale(10, y + 305, "Toggle all non-realtime lights.", 1, 1, 1, 1, 1.5f); break;
+		case 7: Draw_ColoredStringScale(10, y + 305, "Toggle texture filtering.", 1, 1, 1, 1, 1.5f); break;
+		default: break;
+	}
+}
+
+void M_Graphics_Settings_Key (int key)
+{
+	switch(key) {
+		case K_ABUTTON:
+			S_LocalSound ("sounds/menu/enter.wav");
+			switch(gsettings_cursor) {
+				case 0: Cvar_SetValue("scr_showfps", scr_showfps.value ? 0 : 1); break;
+				case 6: Cvar_SetValue("r_fullbright", r_fullbright.value ? 0 : 1); break;
+				case 7: Cvar_Set("gl_texturemode", strcmp(gl_texturemode.string, "GL_LINEAR") ? "GL_LINEAR" : "GL_NEAREST_MIPMAP_LINEAR" ); break;
+				case 8: M_Menu_Options_f (); break;
+				default: break;
+			}
+			break;
+		case K_BBUTTON:
+			M_Menu_Options_f ();
+			break;
+		case K_LEFTARROW:
+			switch(gsettings_cursor) {
+				case 1: M_AdjustSlidersAdvanced(-1, OPT_GSETTING_MAXFPS); break;
+				case 2: M_AdjustSlidersAdvanced(-1, OPT_GSETTING_FOV); break;
+				case 3: M_AdjustSlidersAdvanced(-1, OPT_GSETTING_GAMMA); break;
+				default: break;
+			}
+			break;
+		case K_RIGHTARROW:
+			switch(gsettings_cursor) {
+				case 1: M_AdjustSlidersAdvanced(1, OPT_GSETTING_MAXFPS); break;
+				case 2: M_AdjustSlidersAdvanced(1, OPT_GSETTING_FOV); break;
+				case 3: M_AdjustSlidersAdvanced(1, OPT_GSETTING_GAMMA); break;
+				default: break;
+			}
+			break;
+		case K_UPARROW:
+			S_LocalSound ("sounds/menu/navigate.wav");
+			gsettings_cursor--;
+
+			if (gsettings_cursor == 5)
+				gsettings_cursor = 3;
+
+			if (gsettings_cursor < 0)
+				gsettings_cursor = GSETTINGS_ITEMS;
+			break;
+		case K_DOWNARROW:
+			S_LocalSound ("sounds/menu/navigate.wav");
+			gsettings_cursor++;
+
+			if (gsettings_cursor == 4)
+				gsettings_cursor = 6;
+
+			if (gsettings_cursor > GSETTINGS_ITEMS)
+				gsettings_cursor = 0;
+			break;
+		default: break;
+	}
+}
+
+//
+// NZ:P Control Settings
+//
+
+void M_Control_Settings_f (void)
+{
+	IN_Deactivate(modestate == MS_WINDOWED);
+	key_dest = key_menu;
+	m_state = m_video; // lazy
+	m_entersound = true;
+}
+
+static int csettings_cursor;
+
+#define CSETTINGS_ITEMS 		5
+
+void M_Control_Settings_Draw (void)
+{
+	int y = vid.height * 0.5;
+	float r;
+
+	// Menu Background
+	if (paused_hack == false)
+		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
+
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "CONTROL SETTINGS", 1, 1, 1, 1, 3.0f);
+
+	// Draw Crosshair
+	if (csettings_cursor == 0)
+		Draw_ColoredStringScale(10, y + 55, "Draw Cursor", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 55, "Draw Cursor", 1, 1, 1, 1, 1.5f);
+
+	if (crosshair.value == 0)
+		Draw_ColoredStringScale(300, y + 55, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 55, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Aim Assist
+	if (csettings_cursor == 1)
+		Draw_ColoredStringScale(10, y + 70, "Aim Assist", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 70, "Aim Assist", 1, 1, 1, 1, 1.5f);
+
+	if (in_aimassist.value == 0)
+		Draw_ColoredStringScale(300, y + 70, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 70, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Look Sensitivity
+	if (csettings_cursor == 2)
+		Draw_ColoredStringScale(10, y + 85, "Look Sensitivity", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 85, "Look Sensitivity", 1, 1, 1, 1, 1.5f);
+
+	r = (sensitivity.value - 1)/10;
+	M_DrawSlider (308, y + 85, r);
+
+	// TODO
+	Draw_ColoredStringScale(10, y + 100, "Look Acceleration", 0.5, 0.5, 0.5, 1, 1.5f);
+/*
+	// Look Acceleration
+	if (csettings_cursor == 3)
+		Draw_ColoredStringScale(10, y + 100, "Look Acceleration", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 100, "Look Acceleration", 1, 1, 1, 1, 1.5f);
+
+	r = 1.0f -((in_acceleration.value - 0.5f)/1.5f);
+	M_DrawSlider (316, y + 100, r);
+*/
+
+	// Look Inversion
+	if (csettings_cursor == 4)
+		Draw_ColoredStringScale(10, y + 115, "Look Inversion", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 115, "Look Inversion", 1, 1, 1, 1, 1.5f);
+
+	if (joy_invert.value == 0)
+		Draw_ColoredStringScale(300, y + 115, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 115, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Back
+	if (csettings_cursor == 5)
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
+
+
+	// Descriptions
+	switch(csettings_cursor) {
+		case 0: Draw_ColoredStringScale(10, y + 305, "Toggle Crosshair in-game.", 1, 1, 1, 1, 1.5f); break;
+		case 1: Draw_ColoredStringScale(10, y + 305, "Toggle Assisted Aim to improve Targeting.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 305, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
+		case 4: Draw_ColoredStringScale(10, y + 305, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
+	}
+}
+
+void M_Control_Settings_Key (int key)
+{
+	switch(key) {
+		case K_ABUTTON:
+			S_LocalSound ("sounds/menu/enter.wav");
+			switch(csettings_cursor) {
+				case 0: Cvar_SetValue("crosshair", crosshair.value ? 0 : 1); break;
+				case 1: Cvar_SetValue("in_aimassist", in_aimassist.value ? 0 : 1); break;
+				//case 2: break;
+				//case 3: break;
+				case 4: Cvar_SetValue("joy_invert", joy_invert.value ? 0 : 1); break;
+				case 5: M_Menu_Options_f (); break;
+				default: break;
+			}
+			break;
+		case K_BBUTTON:
+			M_Menu_Options_f ();
+			break;
+		case K_LEFTARROW:
+			switch(csettings_cursor) {
+				case 2: M_AdjustSlidersAdvanced(-1, OPT_CSETTING_LSENS); break;
+				case 3: M_AdjustSlidersAdvanced(-1, OPT_CSETTING_LACC); break;
+				default: break;
+			}
+			break;
+		case K_RIGHTARROW:
+			switch(csettings_cursor) {
+				case 2: M_AdjustSlidersAdvanced(1, OPT_CSETTING_LSENS); break;
+				case 3: M_AdjustSlidersAdvanced(1, OPT_CSETTING_LACC); break;
+				default: break;
+			}
+			break;
+		case K_UPARROW:
+			S_LocalSound ("sounds/menu/navigate.wav");
+			csettings_cursor--;
+
+			if (csettings_cursor == 3)
+				csettings_cursor = 2;
+
+			if (csettings_cursor < 0)
+				csettings_cursor = CSETTINGS_ITEMS;
+			break;
+		case K_DOWNARROW:
+			S_LocalSound ("sounds/menu/navigate.wav");
+			csettings_cursor++;
+
+			if (csettings_cursor == 3)
+				csettings_cursor = 4;
+
+			if (csettings_cursor > CSETTINGS_ITEMS)
+				csettings_cursor = 0;
+			break;
+		default: break;
 	}
 }
 
 //=============================================================================
 /* KEYS MENU */
 
-const char *bindnames[][2] =
+char *bindnames[][2] =
 {
-	{"+attack", 		"attack"},
-	{"+switch", 		"change weapon"},
-	{"+knife",	 		"knife / dive"},
-	{"+grenade", 		"Grenade"},
-	{"+jump", 			"jump"},
-	{"+reload", 		"reload"},
-	{"+aim", 			"ironsight"},
-	{"+use", 			"use"},
-	{"+forward", 		"walk forward"},
-	{"+back", 			"backpedal"},
-	{"+moveleft", 		"step left"},
-	{"+moveright", 		"step right"},
-	{"+left", 			"turn left"},
-	{"+right", 			"turn right"},
-	{"+lookup", 		"look up"},
-	{"+lookdown", 		"look down"}
+	{"+forward", 		"Walk Forward"},
+	{"+back", 			"Walk Backward"},
+	{"+moveleft", 		"Move Left"},
+	{"+moveright", 		"Move Right"},
+	{"+lookup", 		"Look Up"},
+	{"+lookdown", 		"Look Down"},
+	{"+left", 			"Look Left"},
+	{"+right", 			"Look Right"},
+	{"+jump",			"Jump"},
+	{"+attack",			"Fire"},
+	{"+aim", 			"Aim Down Sight"},
+	{"+switch", 		"Switch Weapon"},
+	{"+use", 			"Interact"},
+	{"+reload", 		"Reload"},
+	{"+knife", 			"Melee"},
+	{"+grenade", 		"Grenade"}
 };
 
 #define	NUMCOMMANDS	(sizeof(bindnames)/sizeof(bindnames[0]))
@@ -1746,54 +2389,78 @@ void M_UnbindCommand (const char *command)
 
 extern qpic_t	*pic_up, *pic_down;
 
+extern qpic_t      *b_up;
+extern qpic_t      *b_down;
+extern qpic_t      *b_left;
+extern qpic_t      *b_right;
+extern qpic_t      *b_lthumb;
+extern qpic_t      *b_rthumb;
+extern qpic_t      *b_lshoulder;
+extern qpic_t      *b_rshoulder;
+extern qpic_t      *b_abutton;
+extern qpic_t      *b_bbutton;
+extern qpic_t      *b_ybutton;
+extern qpic_t      *b_xbutton;
+extern qpic_t      *b_lt;
+extern qpic_t      *b_rt;
+
 void M_Keys_Draw (void)
 {
-	int		i, x, y;
-	int		keys[3];
-	const char	*name;
+	int y = vid.height * 0.5;
+	char* b;
 
-	if (bind_grab)
-		M_Print (12, 32, "Press a key or button for this action");
-	else
-		M_Print (18, 32, "A Button to change, Y Button to clear");
+	// Menu Background
+	if (paused_hack == false)
+		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
 
-// search for known bindings
-	for (i = 0; i < (int)NUMCOMMANDS; i++)
-	{
-		y = 48 + 8*i;
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
-		M_Print (16, y, bindnames[i][1]);
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "CONTROLS", 1, 1, 1, 1, 3.0f);
 
-		M_FindKeysForCommand (bindnames[i][0], keys);
+	if (bind_grab) {
+		Draw_ColoredStringScale(86, y + 305, "Press a key or button for this action", 1, 1, 1, 1, 1.5f);
+	} else {
+		Draw_ColoredStringScale(150, y + 305, "Press   to change,   to clear", 1, 1, 1, 1, 1.5f);
+		Draw_StretchPic(220, y + 305, b_abutton, 16, 16);
+		Draw_StretchPic(375, y + 305, b_ybutton, 16, 16);
+	}
 
-		if (keys[0] == -1)
-		{
-			M_Print (140, y, "---");
+	for(int i = 0; i < (int)NUMCOMMANDS; i++) {
+		int y_offset = y + (55 + 15 * i);
+
+		if (i == keys_cursor) {
+			Draw_ColoredStringScale(10, y_offset, bindnames[i][1], 1, 0, 0, 1, 1.5f);
+		} else {
+			Draw_ColoredStringScale(10, y_offset, bindnames[i][1], 1, 1, 1, 1, 1.5f);
 		}
-		else
-		{
-			name = Key_KeynumToString (keys[0]);
-			M_Print (140, y, name);
-			x = strlen(name) * 8;
-			if (keys[1] != -1)
+
+		for (int j = 0; j < 256; j++) {
+			b = keybindings[j];
+
+			if (!b) {
+				continue;
+			}	
+				
+			if (!strcmp (b, bindnames[i][0]))
 			{
-				name = Key_KeynumToString (keys[1]);
-				M_Print (140 + x + 8, y, "or");
-				M_Print (140 + x + 32, y, name);
-				x = x + 32 + strlen(name) * 8;
-				if (keys[2] != -1)
-				{
-					M_Print (140 + x + 8, y, "or");
-					M_Print (140 + x + 32, y, Key_KeynumToString (keys[2]));
-				}
+				qpic_t *btn_to_draw = GetButtonIcon(bindnames[i][0]);
+				if (!strcmp("LSHOULDER", bindnames[i][0]) || !strcmp("RSHOULDER", bindnames[i][0]))
+					Draw_StretchPic(300, y_offset + 4, btn_to_draw, 16, 8);
+				else
+					Draw_StretchPic(300, y_offset, btn_to_draw, 16, 16);
+                break;
 			}
 		}
 	}
 
-	if (bind_grab)
-		M_DrawCharacter (130, 48 + keys_cursor*8, '=');
-	else
-		M_DrawCharacter (130, 48 + keys_cursor*8, 12+((int)(realtime*4)&1));
+	if (keys_cursor == NUMCOMMANDS) {
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	} else {
+		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
+		M_DrawCharacter (282, y + 58 + keys_cursor*15, 12+((int)(realtime*4)&1));
+	}
 }
 
 
@@ -1819,7 +2486,7 @@ void M_Keys_Key (int k)
 	switch (k)
 	{
 	case K_ESCAPE:
-	case K_BBUTTON:
+	case K_BBUTTON:	
 		M_Menu_Options_f ();
 		break;
 
@@ -1987,6 +2654,7 @@ void M_Menu_Credits_f (void)
 {
 	IN_Deactivate(modestate == MS_WINDOWED);
 	key_dest = key_menu;
+	old_m_state = m_state;
 	m_state = m_credits;
 	m_entersound = true;
 	help_page = 0;
@@ -1996,40 +2664,40 @@ void M_Menu_Credits_f (void)
 
 void M_Credits_Draw (void)
 {
-	int x_offset = 8;
+	int y = vid.height * 0.5;
 
-	char *s1 = "CREDITS:";
+	// Menu Background
+	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
 
- 	char *s2 = "- Jukki: Coding";
- 	char *s3 = "- Blubswillrule: Coding, Models, GFX, Sounds, Animations, Music";
- 	char *s4 = "- Ju[s]tice: Maps, Models, GFX";
+	// Fill black to make everything easier to see
+	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
- 	char *s5 = "- Naievil: NX Port, Maps, GFX, Coding";
+	// Version String
+	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
 
- 	char *s6 = "Special thanks to:";
- 	char *s7 = "- DR_Mabuse1981";
- 	char *s8 = "- Shpuld";
- 	char *s9 = "- Ghost_Fang";
- 	char *s10 = "- Crow_bar";
- 	char *s11 = "- Spike";
- 	char *s12 = "- fgsfds";
+	// Header
+	Draw_ColoredStringScale(10, y + 10, "CREDITS", 1, 1, 1, 1, 3.0f);
+	
+ 	Draw_ColoredStringScale(10, y + 55, "Blubswillrule:   Coding, Models, GFX, Sounds, Music", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 70, "Ju[s]tice:       Maps, Models, GFX", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 85, "Jukki:           Coding", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 100, "Biodude:         Sounds", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 115, "DR_Mabuse1981:   Coding", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 130, "Naievil:         Coding, NX Maintaining", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 145, "MotoLegacy:      Coding, GFX, Music, NX Maintaining", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 160, "Derped_Crusader: Models, GFX", 1, 1, 1, 1, 1.5f);
 
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35            )/2)), s1);
+	Draw_ColoredStringScale(10, y + 190, "Special Thanks:", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 205, "- Spike:     FTEQW", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 220, "- Shpuld:    CleanQC4FTE", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 235, "- Crow_Bar:  DQuake", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 250, "- st1x51:    DQuakePlus", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 265, "- fgsfdsfgs: Quakespasm-NX", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 280, "- Azenn:     GFX help", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 295, "- tavo:      Music help", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 310, "- BCDeshiG:  Heavy bug testing", 1, 1, 1, 1, 1.5f);
 
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 +  2*0.0325)/2)), s2);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 +  3*0.0325)/2)), s3);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 +  4*0.0325)/2)), s4);
-
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 +  6*0.0325)/2)), s5);
-
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 +  8*0.0325)/2)), s6);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 +  9*0.0325)/2)), s7);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 10*0.0325)/2)), s8);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 11*0.0325)/2)), s9);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 12*0.0325)/2)), s10);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 13*0.0325)/2)), s11);
- 	Draw_String ((vid.width/x_offset)/2, vid.height * (0.5 + ((0.35 + 14*0.0325)/2)), s12);
-
+	Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
 }
 
 
@@ -2038,11 +2706,14 @@ void M_Credits_Key (int key)
 	switch (key)
 	{
 	case K_ESCAPE:
+	case K_ENTER:
 	case K_BBUTTON:
+	case K_KP_ENTER:
+	case K_ABUTTON:
 		M_Menu_Main_f ();
 		break;
 
-	case K_UPARROW:
+	/*case K_UPARROW:
 	case K_RIGHTARROW:
 		m_entersound = true;
 		if (++help_page >= NUM_CREDITS_PAGES)
@@ -2054,7 +2725,8 @@ void M_Credits_Key (int key)
 		m_entersound = true;
 		if (--help_page < 0)
 			help_page = NUM_CREDITS_PAGES-1;
-		break;
+		break;*/
+	default: break;
 	}
 
 }
@@ -2073,6 +2745,7 @@ void M_Menu_Quit_f (void)
 	IN_Deactivate(modestate == MS_WINDOWED);
 	key_dest = key_menu;
 	m_quit_prevstate = m_state;
+	old_m_state = m_state;
 	m_state = m_quit;
 	m_entersound = true;
 	msgNumber = rand()&7;
@@ -3035,74 +3708,53 @@ void M_Draw (void)
 		break;
 
 	case m_start:
-		Menu_Background_Draw (MENU_START);
+		//Menu_Background_Draw (MENU_START);
 		M_Start_Menu_Draw ();
 		break;
-
 	case m_main:
-		Menu_Background_Draw (MENU_MAIN);
+		//Menu_Background_Draw (MENU_MAIN);
 		M_Main_Draw ();
 		break;
-
 	case m_paused_menu:
-		Menu_Background_Draw (MENU_PAUSE);
+		//Menu_Background_Draw (MENU_PAUSE);
 		M_Paused_Menu_Draw ();
 		break;
-
 	case m_restart:
 		M_Restart_Draw ();
 		break;
-
 	case m_exit:
 		M_Exit_Draw ();
 		break;
-
 	case m_singleplayer:
-		Menu_Background_Draw (MENU_DEFAULT);
+		//Menu_Background_Draw (MENU_DEFAULT);
 		M_SinglePlayer_Draw ();
 		break;
-
 	case m_maps:
-		Menu_Background_Draw (MENU_DEFAULT);
+		//Menu_Background_Draw (MENU_DEFAULT);
 		M_Menu_Maps_Draw ();
 		break;
-
 	case m_multiplayer:
 		M_MultiPlayer_Draw ();
 		break;
-
 	case m_setup:
 		GL_SetCanvas (CANVAS_MENU); //johnfitz
 		M_Setup_Draw ();
 		break;
-
 	case m_net:
-		M_Net_Draw ();
+		M_Graphics_Settings_Draw ();
 		break;
-
 	case m_options:
-		Menu_Background_Draw (MENU_DEFAULT);
-		GL_SetCanvas (CANVAS_MENU); //johnfitz
 		M_Options_Draw ();
 		break;
-
 	case m_keys:
-		Menu_Background_Draw (MENU_DEFAULT);
-		GL_SetCanvas (CANVAS_MENU); //johnfitz
 		M_Keys_Draw ();
 		break;
-
 	case m_video:
-		Menu_Background_Draw (MENU_DEFAULT);
-		GL_SetCanvas (CANVAS_MENU); //johnfitz
-		M_Video_Draw ();
+		M_Control_Settings_Draw ();
 		break;
-
 	case m_credits:
-		Menu_Background_Draw (MENU_DEFAULT);
 		M_Credits_Draw ();
 		break;
-
 	case m_quit:
 		if (!fitzmode)
 		{ /* QuakeSpasm customization: */
@@ -3112,25 +3764,20 @@ void M_Draw (void)
 		}
 		M_Quit_Draw ();
 		break;
-
 	case m_lanconfig:
 		M_LanConfig_Draw ();
 		break;
-
 	case m_gameoptions:
-		Menu_Background_Draw (MENU_DEFAULT);
+		//Menu_Background_Draw (MENU_DEFAULT);
 		GL_SetCanvas (CANVAS_MENU); //johnfitz
 		M_GameOptions_Draw ();
 		break;
-
 	case m_search:
 		M_Search_Draw ();
 		break;
-
 	case m_slist:
 		M_ServerList_Draw ();
 		break;
-
 	default:
 		break;
 	}
@@ -3189,7 +3836,7 @@ void M_Keydown (int key)
 		return;
 
 	case m_net:
-		M_Net_Key (key);
+		M_Graphics_Settings_Key (key);
 		return;
 
 	case m_options:
@@ -3201,7 +3848,7 @@ void M_Keydown (int key)
 		return;
 
 	case m_video:
-		M_Video_Key (key);
+		M_Control_Settings_Key (key);
 		return;
 
 	case m_credits:

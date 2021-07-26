@@ -466,6 +466,34 @@ void Draw_Init (void)
 
 /*
 ================
+Draw_CharacterQuadScale
+Draw_CharacterQuad with scale parm
+================
+*/
+void Draw_CharacterQuadScale (int x, int y, char num, float s)
+{
+	int				row, col;
+	float			frow, fcol, size;
+
+	row = num>>4;
+	col = num&15;
+
+	frow = row*0.0625;
+	fcol = col*0.0625;
+	size = 0.0625*s;
+
+	glTexCoord2f (fcol, frow);
+	glVertex2f (x, y);
+	glTexCoord2f (fcol + (float)(size/s), frow);
+	glVertex2f (x+(8*(s)), y);
+	glTexCoord2f (fcol + (float)(size/s), frow + (float)(size/s));
+	glVertex2f (x+(8*(s)), y+(8*(s)));
+	glTexCoord2f (fcol, frow + (float)(size/s));
+	glVertex2f (x, y+(8*(s)));
+}
+
+/*
+================
 Draw_CharacterQuad -- johnfitz -- seperate function to spit out verts
 ================
 */
@@ -536,6 +564,42 @@ void Draw_String (int x, int y, const char *str)
 	}
 
 	glEnd ();
+}
+
+/*
+================
+Draw_ColoredStringScale
+
+Draw_ColoredString with scale parm
+================
+*/
+void Draw_ColoredStringScale (int x, int y, const char *str, float r, float g, float b, float a, float s)
+{
+	if (y <= -8)
+		return;			// totally off screen
+
+	glEnable (GL_BLEND);
+    glColor4f(r, g, b, a);
+	glDisable (GL_ALPHA_TEST);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	GL_Bind (char_texture);
+	glBegin (GL_QUADS);
+
+	while (*str)
+	{
+		if (*str != 32) //don't waste verts on spaces
+			Draw_CharacterQuadScale (x, y, *str, s);
+		str++;
+		x += 8*s;
+	}
+
+	glEnd ();
+
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glEnable (GL_ALPHA_TEST);
+	glDisable (GL_BLEND);
+	glColor4f (1,1,1,1);
 }
 
 
@@ -615,6 +679,31 @@ void Draw_ColorPic (int x, int y, qpic_t *pic, float r, float g, float b, float 
 		glDisable (GL_BLEND);
 		glColor4f (1,1,1,1);
 	}
+}
+
+/*
+=============
+Draw_StretchPic
+=============
+*/
+void Draw_StretchPic (int x, int y, qpic_t *pic, int x_value, int y_value)
+{
+	glpic_t			*gl;
+	int i;
+	if (scrap_dirty)
+		Scrap_Upload ();
+	gl = (glpic_t *)pic->data;
+	GL_Bind (gl->gltexture);
+	glBegin (GL_QUADS);
+	glTexCoord2f (gl->sl, gl->tl);
+	glVertex2f (x, y);
+	glTexCoord2f (gl->sh, gl->tl);
+	glVertex2f (x+x_value, y);
+	glTexCoord2f (gl->sh, gl->th);
+	glVertex2f (x+x_value, y+y_value);
+	glTexCoord2f (gl->sl, gl->th);
+	glVertex2f (x, y+y_value);
+	glEnd ();
 }
 
 /*

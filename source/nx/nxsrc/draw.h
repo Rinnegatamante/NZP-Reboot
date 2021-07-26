@@ -31,6 +31,7 @@ extern	qpic_t		*draw_disc;	// also used on sbar
 void Draw_Init (void);
 void Draw_Character (int x, int y, int num);
 void Draw_DebugChar (char num);
+void Draw_StretchPic (int x, int y, qpic_t *pic, int x_value, int y_value);
 void Draw_Pic (int x, int y, qpic_t *pic);
 void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha);
 void Draw_ColorPic (int x, int y, qpic_t *pic, float r, float g, float b, float alpha);
@@ -42,6 +43,7 @@ void Draw_FillByColor (int x, int y, int w, int h, unsigned int c, float alpha);
 void Draw_FadeScreen (void);
 void Draw_String (int x, int y, const char *str);
 void Draw_ColoredString (int x, int y, const char *str, float r, float g, float b, float a);
+void Draw_ColoredStringScale (int x, int y, const char *str, float r, float g, float b, float a, float s);
 qpic_t *Draw_PicFromWad (const char *name);
 qpic_t *Draw_CachePic (const char *path);
 void Draw_NewGame (void);
