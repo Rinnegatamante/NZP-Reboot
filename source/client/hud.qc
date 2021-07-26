@@ -35,7 +35,7 @@ void(float width, float height) HUD_Health =
 			return;
 		float color = 255.0 + modifier;
     
-		drawpic([0,0,0], getImage("blood.tga"), [width, height, 0], [10,0,0], alpha/2000); // naievil -- alpha factor division here makes it easy to use legacy code
+		drawpic([0,0,0], strcat(G_HUD.MISC_BLOOD, ".tga"), [width, height, 0], [10,0,0], alpha/2000); // naievil -- alpha factor division here makes it easy to use legacy code
 	}
 	
 }
@@ -237,7 +237,7 @@ void(float width, float height) HUD_Points =
 		if ((i+1) == getstatf(STAT_PLAYERNUM)) {
 			pointwidth = stringwidth(ftos(playerpoints[i]), 0, [0.022*width, 0.022*width, 0]);
 			x = ((width + backwidth) - pointwidth)/2;
-			drawpic([backwidth ,0.70*height - (.061*height*i),0], getImage("moneyback.tga"), [0.2*width, 0.07*height, 0], [1,1,1], 1); 
+			drawpic([backwidth ,0.70*height - (.061*height*i),0], strcat(G_HUD.MISC_MONEYBACK, ".tga"), [0.2*width, 0.07*height, 0], [1,1,1], 1); 
 			drawstring([x, 0.715*height - 0.06*height*i, 0], ftos(playerpoints[i]), [0.022*width, 0.022*width, 0], TEXTCOLOR, 1, 0); 
 			PointUpdate(backwidth * 1.025, width, height); 
 		}
@@ -245,7 +245,7 @@ void(float width, float height) HUD_Points =
 			backwidth = 0.85*width;
 			pointwidth = stringwidth(ftos(playerpoints[i]), 0, [0.022*width*0.8, 0.022*width*0.8, 0]);
 			x = ((width + backwidth) - pointwidth)/2;
-			drawpic([backwidth, 0.70*height - (.071*height*i*0.8),0], getImage("moneyback.tga"), [0.2*width*0.8, 0.07*height*0.8, 0], [1,1,1], 0); 
+			drawpic([backwidth, 0.70*height - (.071*height*i*0.8),0], strcat(G_HUD.MISC_MONEYBACK, ".tga"), [0.2*width*0.8, 0.07*height*0.8, 0], [1,1,1], 1); 
 			drawstring([x, 0.715*height - 0.07*height*i*0.8, 0], ftos(playerpoints[i]), [0.022*width*0.8, 0.022*width*0.8, 0], TEXTCOLOR, 1, 0); 
 		}
 	}
@@ -262,11 +262,11 @@ void(float width, float height) HUD_Grenades =
 
 	grenades = getstatf(STAT_GRENADES);
 	betties = getstatf(STAT_SECGRENADES);
-	drawpic([0.9*width,0.825*height,0], getImage("frag.tga"), [50, 50, 0], [1,1,1], 1);
+	drawpic([0.9*width,0.825*height,0], strcat(G_HUD.MISC_GRENADE, ".tga"), [50, 50, 0], [1,1,1], 1);
 	drawstring([0.9*width + 28, 0.825*height + 32, 0], ftos(grenades), [0.025*width, 0.025*width, 0], [1, 1, 1], 1, 0);
 	
 	if (betties != -1) {
-		drawpic([0.825*width,0.825*height,0], getImage("betty.tga"), [50, 50, 0], [1,1,1], 1);
+		drawpic([0.825*width,0.825*height,0], strcat(G_HUD.MISC_BETTY, ".tga"), [50, 50, 0], [1,1,1], 1);
 		drawstring([0.825*width + 28, 0.825*height + 32, 0], ftos(betties), [0.025*width, 0.025*width, 0], [1, 1, 1], 1, 0);
 	}
 }
@@ -308,13 +308,21 @@ void(float width, float height) HUD_Rounds =
 	x_offset = 0;
 	savex = 0;
 
-	for (float j = 0; j < 10; j++) {
-		if (j < 5) {
-			sb_round[j] = getImage(strcat("r", ftos(j+1), ".tga"));
-		}
-
-		sb_round_num[j] = getImage(strcat("r_num", ftos(j), ".tga"));
-	}
+	sb_round[0] = strcat(G_HUD.ROUND_TALLY[0], ".tga");
+	sb_round[1] = strcat(G_HUD.ROUND_TALLY[1], ".tga");
+	sb_round[2] = strcat(G_HUD.ROUND_TALLY[2], ".tga");
+	sb_round[3] = strcat(G_HUD.ROUND_TALLY[3], ".tga");
+	sb_round[4] = strcat(G_HUD.ROUND_TALLY[4], ".tga");
+	sb_round_num[0] = strcat(G_HUD.ROUND_NUMBER[0], ".tga");
+	sb_round_num[1] = strcat(G_HUD.ROUND_NUMBER[1], ".tga");
+	sb_round_num[2] = strcat(G_HUD.ROUND_NUMBER[2], ".tga");
+	sb_round_num[3] = strcat(G_HUD.ROUND_NUMBER[3], ".tga");
+	sb_round_num[4] = strcat(G_HUD.ROUND_NUMBER[4], ".tga");
+	sb_round_num[5] = strcat(G_HUD.ROUND_NUMBER[5], ".tga");
+	sb_round_num[6] = strcat(G_HUD.ROUND_NUMBER[6], ".tga");
+	sb_round_num[7] = strcat(G_HUD.ROUND_NUMBER[7], ".tga");
+	sb_round_num[8] = strcat(G_HUD.ROUND_NUMBER[8], ".tga");
+	sb_round_num[9] = strcat(G_HUD.ROUND_NUMBER[9], ".tga");
 
 	if (rounds_change == 1 || rounds_change == 2) {
 		if (!rinit) {
@@ -323,7 +331,7 @@ void(float width, float height) HUD_Rounds =
 		}
 
 		pwidth = (width - stringwidth("Round", 0, [0.030*width, 0.030*width, 0]))/2;
-		drawstring([pwidth, 0.35*height, 0], "Round", [0.030*width, 0.030*width, 0], [1, rcolor, rcolor], ralpha, 0);
+		drawstring([pwidth, 0.35*height, 0], "Round", [0.030*width, 0.030*width, 0], [1, rcolor, rcolor], ralpha, 1);
 
 		rcolor -= frametime/2.5;
 		if (rcolor < 0) {
@@ -342,10 +350,10 @@ void(float width, float height) HUD_Rounds =
 			}
 		}
 
-		drawstring([0.01*width, 0.66*height, 0], chaptertitle, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 0);
-		drawstring([0.01*width, 0.69*height, 0], location, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 0);
-		drawstring([0.01*width, 0.72*height, 0], date, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 0);
-		drawstring([0.01*width, 0.75*height, 0], person, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 0);
+		drawstring([0.01*width, 0.66*height, 0], chaptertitle, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 1);
+		drawstring([0.01*width, 0.69*height, 0], location, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 1);
+		drawstring([0.01*width, 0.72*height, 0], date, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 1);
+		drawstring([0.01*width, 0.75*height, 0], person, [0.015*width, 0.015*width, 0], [1, 1, 1], localpha, 1);
 	}
 
 	if (rounds_change == 1)//this is the rounds icon at the middle of the screen
@@ -360,14 +368,19 @@ void(float width, float height) HUD_Rounds =
 		round_center_x = (g_width - (11*g_width/480)) /2;
 		round_center_y = (g_height - (48*g_height/272)) /2;
 		
-		drawpic([round_center_x,round_center_y,0], sb_round[0], [roundwidth, roundheight, 1], [107/255,1/255,0], alphabling/255);
+		if (G_USETALLIES)
+			drawpic([round_center_x,round_center_y,0], sb_round[0], [roundwidth, roundheight, 1], [107/255,1/255,0], alphabling/255);
+		else
+			drawpic([round_center_x,round_center_y,0], sb_round_num[1], [roundwidth_num, roundheight_num, 1], [107/255,1/255,0], alphabling/255);
 	}
 	else if (rounds_change == 2)//this is the rounds icon moving from middle
 	{
 		float round_center_y_offset, round_center_x_offset;
 				
-		drawpic([round_center_x + round_center_x_offset,round_center_y + round_center_y_offset,0], sb_round[0], [roundwidth,roundheight, 1], [107/255,(1/255),0], 1);
-		
+		if (G_USETALLIES)
+			drawpic([round_center_x + round_center_x_offset,round_center_y + round_center_y_offset,0], sb_round[0], [roundwidth,roundheight, 1], [107/255,(1/255),0], 1);
+		else
+			drawpic([round_center_x + round_center_x_offset,round_center_y + round_center_y_offset,0], sb_round_num[1], [roundwidth_num,roundheight_num, 1], [107/255,(1/255),0], 1);
 		round_center_x = round_center_x - (((229/108)*2 - 0.2)*(width/480)/8) * (frametime*250);
 		round_center_y = round_center_y + ((2*(height/272))/8) * (frametime*250);
 		if (round_center_x <= (5/480)*height)
@@ -400,30 +413,33 @@ void(float width, float height) HUD_Rounds =
 		}
 		if (rounds > 0 && rounds < 11)
 		{
-
-			for (i = 0; i < rounds; i = i + 1)
-			{
-				if (i == 4)
+			if (G_USETALLIES) {
+				for (i = 0; i < rounds; i = i + 1)
 				{
-					drawpic([5,height - roundheight, 0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
-					
-					savex = x_offset + (10*width/480);
-					x_offset = x_offset + (10*width/480);
-					continue;
-				}
-				if (i == 9)
-				{
-					drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
-					continue;
-				}
-				if (i > 4)
-					icon_num = i - 5;
-				else
-					icon_num = i;
+					if (i == 4)
+					{
+						drawpic([5,height - roundheight, 0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
+						
+						savex = x_offset + (10*width/480);
+						x_offset = x_offset + (10*width/480);
+						continue;
+					}
+					if (i == 9)
+					{
+						drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
+						continue;
+					}
+					if (i > 4)
+						icon_num = i - 5;
+					else
+						icon_num = i;
 
-				drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
+					drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
 
-				x_offset = x_offset +  roundwidth + (3*width/480);
+					x_offset = x_offset +  roundwidth + (3*width/480);
+				}
+			} else {
+				drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round_num[rounds], [roundwidth_num, roundheight_num, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
 			}
 		}
 		else
@@ -472,31 +488,36 @@ void(float width, float height) HUD_Rounds =
 	
 		if (rounds > 0 && rounds < 11)
 		{
-			for (i = 0; i < rounds; i = i + 1)
-			{
-				if (i == 4)
+			if (G_USETALLIES) {
+				for (i = 0; i < rounds; i = i + 1)
 				{
-					drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
+					if (i == 4)
+					{
+						drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
 
-					savex = x_offset + (10*width/480);
-					x_offset = x_offset + (10*width/480);
-					continue;
+						savex = x_offset + (10*width/480);
+						x_offset = x_offset + (10*width/480);
+						continue;
+					}
+					if (i == 9)
+					{
+						drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
+
+						continue;
+					}
+					if (i > 4)
+						icon_num = i - 5;
+					else
+						icon_num = i;
+
+						drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [1,1,1], blinking/255);
+
+					x_offset = x_offset +  roundwidth + (3*width/480);
 				}
-				if (i == 9)
-				{
-					drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
-
-					continue;
-				}
-				if (i > 4)
-					icon_num = i - 5;
-				else
-					icon_num = i;
-
-					drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [1,1,1], blinking/255);
-
-				x_offset = x_offset +  roundwidth + (3*width/480);
+			} else {
+				drawpic([2 + x_offset, height - roundheight - (4*height/272),0], sb_round_num[rounds], [roundwidth_num,roundheight_num, 1], [1,1,1], blinking/255);
 			}
+			
 		}
 		else
 		{
@@ -536,29 +557,33 @@ void(float width, float height) HUD_Rounds =
 			blinking = 0;
 		if (rounds > 0 && rounds < 11)
 		{
-			for (i = 0; i < rounds; i = i + 1)
-			{
-				if (i == 4)
+			if (G_USETALLIES) {
+				for (i = 0; i < rounds; i = i + 1)
 				{
-					drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
+					if (i == 4)
+					{
+						drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
 
-					savex = x_offset + (10*width/480);
-					x_offset = x_offset + (10*width/480);
-					continue;
+						savex = x_offset + (10*width/480);
+						x_offset = x_offset + (10*width/480);
+						continue;
+					}
+					if (i == 9)
+					{
+						drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
+						continue;
+					}
+					if (i > 4)
+						icon_num = i - 5;
+					else
+						icon_num = i;
+
+					drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [1,1,1], blinking/255);
+
+					x_offset = x_offset +  roundwidth + (3*width/480);
 				}
-				if (i == 9)
-				{
-					drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
-					continue;
-				}
-				if (i > 4)
-					icon_num = i - 5;
-				else
-					icon_num = i;
-
-				drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [1,1,1], blinking/255);
-
-				x_offset = x_offset +  roundwidth + (3*width/480);
+			} else {
+				drawpic([2 + x_offset, height - roundheight - (4*height/272),0], sb_round_num[rounds], [roundwidth_num,roundheight_num, 1], [1,1,1], blinking/255);
 			}
 		}
 		else
@@ -599,31 +624,36 @@ void(float width, float height) HUD_Rounds =
 			
 		if (rounds > 0 && rounds < 11)
 		{
-			for (i = 0; i < rounds; i = i + 1)
-			{
-				if (i == 4)
+			if (G_USETALLIES) {
+				for (i = 0; i < rounds; i = i + 1)
 				{
-					drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
-								
-					savex = x_offset + (10*width/480);
-					x_offset = x_offset + (10*width/480);
-					continue;
+					if (i == 4)
+					{
+						drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
+									
+						savex = x_offset + (10*width/480);
+						x_offset = x_offset + (10*width/480);
+						continue;
+					}
+					if (i == 9)
+					{
+						drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
+
+						continue;
+					}
+					if (i > 4)
+						icon_num = i - 5;
+					else
+						icon_num = i;
+
+					drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [1,1,1], blinking/255);
+
+					x_offset = x_offset +  roundwidth + (3*width/480);
 				}
-				if (i == 9)
-				{
-					drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [1,1,1], blinking/255);
-
-					continue;
-				}
-				if (i > 4)
-					icon_num = i - 5;
-				else
-					icon_num = i;
-
-				drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [1,1,1], blinking/255);
-
-				x_offset = x_offset +  roundwidth + (3*width/480);
+			} else {
+				drawpic([2 + x_offset, height - roundheight - (4*height/272),0], sb_round_num[rounds], [roundwidth_num,roundheight_num, 1], [1,1,1], blinking/255);
 			}
+			
 		}
 		else
 		{
@@ -676,30 +706,34 @@ void(float width, float height) HUD_Rounds =
 		}
 		if (rounds > 0 && rounds < 11)
 		{
-			for (i = 0; i < rounds; i = i + 1)
-			{
-				if (i == 4)
+			if (G_USETALLIES) {
+				for (i = 0; i < rounds; i = i + 1)
 				{
-					drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
+					if (i == 4)
+					{
+						drawpic([5, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
 
-					savex = x_offset + (10*width/480);
-					x_offset = x_offset + (10*width/480);
-					continue;
+						savex = x_offset + (10*width/480);
+						x_offset = x_offset + (10*width/480);
+						continue;
+					}
+					if (i == 9)
+					{
+						drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
+
+						continue;
+					}
+					if (i > 4)
+						icon_num = i - 5;
+					else
+						icon_num = i;
+
+					drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
+
+					x_offset = x_offset +  roundwidth + (3*width/480);
 				}
-				if (i == 9)
-				{
-					drawpic([5 + savex, height - roundheight - (4*height/272),0], sb_round[4], [roundwidth_4,roundheight_4, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
-
-					continue;
-				}
-				if (i > 4)
-					icon_num = i - 5;
-				else
-					icon_num = i;
-
-				drawpic([5 + x_offset, height - roundheight - (4*height/272),0], sb_round[icon_num], [roundwidth,roundheight, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
-
-				x_offset = x_offset +  roundwidth + (3*width/480);
+			} else {
+				drawpic([2+x_offset, height - roundheight - (4*height/272),0], sb_round_num[rounds], [roundwidth_num,roundheight_num, 1], [color_shift[0]/255,color_shift[1]/255,color_shift[2]/255], 1);
 			}
 		}
 		else
@@ -736,7 +770,7 @@ void(float width, float height) HUD_Rounds =
 		color_shift[2] = 0;
 		color_shift_init = 0;
 		alphabling = 0;
-		if (rounds > 0 && rounds < 11)
+		if (rounds > 0 && rounds < 11 && G_USETALLIES)
 		{
 			for (i = 0; i < rounds; i = i + 1)
 			{
@@ -913,65 +947,65 @@ void(float width, float height) HUD_Perks =
 		{
 			if (perk_order[i] == P_JUG)
 			{
-				drawpic([x,y,0], getImage("jug.tga"), [32, 32, 1], [1,1,1], 1);
+				drawpic([x,y,0], strcat(G_HUD.PERK_JUGG, ".tga"), [24, 24, 1], [1,1,1], 1);
 
-				if (G_HUDHOR)
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_DOUBLE)
 			{
-				drawpic([x,y,0], getImage("double.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_DOUBLE, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_SPEED)
 			{
-				drawpic([x,y,0], getImage("speed.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_SPEED, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_REVIVE)
 			{
-				drawpic([x,y,0], getImage("revive.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_REVIVE, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_FLOP)
 			{
-				drawpic([x,y,0], getImage("flopper.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_FLOPPER, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_STAMIN)
 			{
-				drawpic([x,y,0], getImage("stamin.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_STAMIN, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_DEAD)
 			{
-				drawpic([x,y,0], getImage("dead.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_DEADSHOT, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
 			}
 			else if (perk_order[i] == P_MULE)
 			{
-				drawpic([x,y,0], getImage("mule.tga"), [32, 32, 1], [1,1,1], 1);
-				if (G_HUDHOR)
+				drawpic([x,y,0], strcat(G_HUD.PERK_MULEKICK, ".tga"), [24, 24, 1], [1,1,1], 1);
+				if (G_HORPERKS)
 					x += 34;
 				else
 					y -= 34;
@@ -1158,11 +1192,10 @@ void() Draw_Crosshair =
 }
 
 void() HUD_Powerups = {
-
 	if(getstatf(STAT_X2))
-		drawpic([(g_width/2 - (28/272)*g_height),0,0], "gfx/hud/2x.tga", [(28/272)*g_height, (28/272)*g_height, 1], [1,1,1], 1);
+		drawpic([(g_width/2 - (28/272)*g_height),0,0], strcat(G_HUD.PU_2X, ".tga"), [(28/272)*g_height, (28/272)*g_height, 1], [1,1,1], 1);
 	if(getstatf(STAT_INSTA))
-		drawpic([(g_width/2 + (5/480)*g_width),0,0], "gfx/hud/in_kill.tga", [(28/272)*g_height, (28/272)*g_height, 1], [1,1,1], 1);
+		drawpic([(g_width/2 + (5/480)*g_width),0,0], strcat(G_HUD.PU_INSTAKILL, ".tga"), [(28/272)*g_height, (28/272)*g_height, 1], [1,1,1], 1);
 }
 
 void() HUD_Broadcast = {

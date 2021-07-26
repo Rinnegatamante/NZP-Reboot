@@ -181,6 +181,7 @@ noref void() CSQC_WorldLoaded =
 
 	mappath = strcat("maps/", mapname);
 	mappath = strzone(mappath);
+	NZD_Load();
 };
 
 // This is from COW lol!
@@ -1038,13 +1039,6 @@ noref void() CSQC_Parse_Event =
 			W_CFLASHSIZE[wepnum] = flashsize;
 			W_CVMODEL2[wepnum] = v2;
 			W_CDUAL[wepnum] = isd;*/
-			break;
-		case EVENT_HUDUPDATE:
-			G_HUD = readstring();
-			G_HUDHOR = readbyte();
-
-			if (G_HUD != "")
-				huddir = strcat("gfx/hud/", G_HUD, "/");
 			break;
 	}
 }
