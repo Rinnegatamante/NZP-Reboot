@@ -277,7 +277,7 @@ void() touch_perk =
 	if (other.stance == 0 && self.collected == false && G_PERKCHANGE != 0) {
 		self.collected = true;
 		addmoney(other, G_PERKCHANGE, 0);
-		sound(self, 0,"sounds/misc/ching.wav", 1, 1);
+		sound(self, 0,G_SOUNDS.MISC_CHING, 1, 1);
 	}
 
 	// Don't try to buy when prone
@@ -1495,7 +1495,7 @@ void() mystery_touch =
 				{
 					
 				}
-				sound(self, 0,"sounds/misc/ching.wav", 1, 1);
+				sound(self, 0,G_SOUNDS.MISC_CHING, 1, 1);
 				tempe = self;
 				self = other;
 				startframe = GetFrame(self.weapon,TAKE_OUT_START);

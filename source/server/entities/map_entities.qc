@@ -255,7 +255,7 @@ void () buy_weapon_touch =
 		}
 		
 
-		sound(other, 0,"sounds/misc/ching.wav", 1, 1);
+		sound(other, 0,G_SOUNDS.MISC_CHING, 1, 1);
 		other.reload_delay = 0;
 		
 		if (!IsPapWeapon(other.weapon))
@@ -288,7 +288,7 @@ void () buy_weapon_touch =
 		{
 			other.ach_tracker_coll++;
 			other.reload_delay = 0;
-			sound(other, 0,"sounds/misc/ching.wav", 1, 1);
+			sound(other, 0,G_SOUNDS.MISC_CHING, 1, 1);
 			//other.boughtweapon = true;
 			addmoney(other, 0 - self.cost2, FALSE);
 			other.grenades = other.grenades | 2;
@@ -323,7 +323,7 @@ void () buy_weapon_touch =
 		{
 			other.ach_tracker_coll++;
 			other.reload_delay = 0;
-			sound(other, 0,"sounds/misc/ching.wav", 1, 1);
+			sound(other, 0,G_SOUNDS.MISC_CHING, 1, 1);
 			//other.boughtweapon = true;
 			addmoney(other, 0 - self.cost, FALSE);
 			other.primary_grenades = 4;
@@ -413,7 +413,7 @@ void () buy_weapon_touch =
 			other.weapon = 0;
 		}
 		
-		sound(other, 0,"sounds/misc/ching.wav", 1, 1);
+		sound(other, 0,G_SOUNDS.MISC_CHING, 1, 1);
 		other.reload_delay = 0;
 		addmoney(other, -1*self.cost, 0);
 		if (self.enemy) {
@@ -482,8 +482,6 @@ void() buy_weapon =
 	self.nextthink = time + 0.2; 
 
 	ach_tracker_col2++;
-
-	precache_sound("sounds/misc/ching.wav");
 };
 
 

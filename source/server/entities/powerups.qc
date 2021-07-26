@@ -20,11 +20,12 @@ string(float type) getPowerupModel =
 string(float type) getPowerupVO =
 {
 	switch(type) {
-		case 1: return "sounds/pu/maxammo.wav"; break;
-		case 2: return "sounds/pu/double_points.wav"; break;
-		case 3: return "sounds/pu/insta_kill.wav"; break;
-		case 4: return "sounds/pu/nuke.wav"; break;
-		case 5: return "sounds/pu/carpenter.wav"; break;
+		case 1: return G_SOUNDS.PU_MAXAMMO; break;
+		case 2: return G_SOUNDS.PU_2X; break;
+		case 3: return G_SOUNDS.PU_INSTAKILL; break;
+		case 4: return G_SOUNDS.PU_NUKE; break;
+		case 5: return G_SOUNDS.PU_CARPENTER; break;
+		case 6: return G_SOUNDS.PU_PERKDROP; break;
 		default: return ""; break;
 	}
 
@@ -294,7 +295,7 @@ void() powerup_touch =
 	if(other.classname == "player")
 	{
 		// pickup sound
-		sound(self.owner,CHAN_VOICE,"sounds/pu/pickup.wav",1,ATTN_NONE);
+		sound(self.owner,CHAN_VOICE,G_SOUNDS.PU_PICKUP,1,ATTN_NONE);
 
 		// add a slight delay before VO play
 		self.think = powerup_play_sound;
@@ -363,7 +364,7 @@ void() sparkle_think =
 	
 	if(self.calc_time <= time)
 	{
-		sound(self,CHAN_VOICE,"sounds/pu/powerup.wav",0.6,ATTN_NORM);
+		sound(self,CHAN_VOICE,G_SOUNDS.PU_LOOP,0.6,ATTN_NORM);
 		self.calc_time = time + 2.998;
 	}
 	
@@ -402,32 +403,40 @@ float() GetPowerupID =
 			if (t > (i/total_powerups)) {
 				switch(i) {
 					case 1:
-						found = true;
-						id = i;
+						if (G_ALLOWMAXAMMO) {
+							found = true;
+							id = i;
+						}
 						break;
 					case 2:
-						found = true;
-						id = i;
+						if (G_ALLOW2X) {
+							found = true;
+							id = i;
+						}
 						break;
 					case 3:
-						found = true;
-						id = i;
+						if (G_ALLOWINSTA) {
+							found = true;
+							id = i;
+						}
 						break;
 					case 4:
-						found = true;
-						id = i;
+						if (G_ALLOWNUKE) {
+							found = true;
+							id = i;
+						}
 						break;
 					case 5:
-						if (carpenter_able) {
+						if (G_ALLOWCARPENTER && carpenter_able) {
 							found = true;
 							id = i;
 						}
 						break;
 					case 6:
-						/*if (perk_able) {
+						if (G_ALLOWPERK && perk_able) {
 							found = true;
 							id = i;
-						}*/
+						}
 						break;
 					default:
 						break;
@@ -468,9 +477,9 @@ void(vector where, float type) Spawn_Powerup =
 	#endif
 	twlt_Sparkle.think = sparkle_think;
 	twlt_Sparkle.nextthink = time + 0.1;
-	sound(twlt_Sparkle,CHAN_VOICE,"sounds/pu/powerup.wav",0.6,ATTN_NORM);
+	sound(twlt_Sparkle,CHAN_VOICE,G_SOUNDS.PU_LOOP,0.6,ATTN_NORM);
 	
-	sound(new_powerup,CHAN_AUTO,"sounds/pu/drop.wav",1,ATTN_NONE);
+	sound(new_powerup,CHAN_AUTO,G_SOUNDS.PU_DROP,1,ATTN_NONE);
 	
 	//========================================================
 
