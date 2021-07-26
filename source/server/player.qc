@@ -372,7 +372,7 @@ void() PlayerPostThink =
 		#endif
 		
 		if (self.perks & P_STAMIN) {
-			if (self.sprint_timer > sprint_max_time * 2) {
+			if (self.sprint_timer > (sprint_max_time * G_STAMINMULTIPLIER) * 2) {
 				W_SprintStop();
 			}
 		}
@@ -556,6 +556,7 @@ void() PlayerSpawn =
 	self.reviving = 0;
 	self.weaponnum = 0;
 	self.perks = G_PERKS;
+	self.perks_purchased = spawn_perk_count;
 	SetPerk(self, self.perks);
 	
 	//self.zoom = 1;			// This is to fix an aimin bug for the kar scope

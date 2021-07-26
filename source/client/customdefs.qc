@@ -1,5 +1,7 @@
 //Various globals that are used in this FTEQW example are defined here, they are not used by the engine itself
 
+#define CLIENT
+
 #pragma warning disable Q302
 
 #define true    1
