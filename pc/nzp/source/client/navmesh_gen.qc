@@ -20,6 +20,7 @@ void(navgen_cell *cell) delete_cell;
 void(navgen_cell *cell, navgen_cell **list_root) add_cell_to_list;
 void(navgen_cell *cell, navgen_cell **list_root) remove_cell_from_list;
 navgen_cell *(navgen_cell *cell, navgen_cell **list_root) cell_in_list;
+navgen_cell *(navgen_cell *cell, navgen_cell **list_root) matching_cell_in_list;
 navgen_cell *(int x, int y, int z, navgen_cell **list_root) get_cell_from_list;
 // Boundaries
 struct navgen_boundary;
@@ -75,6 +76,12 @@ void cl_navgen_phase_rectangle_triangulation_start();
 void cl_navgen_phase_rectangle_triangulation_step();
 int cl_navgen_phase_rectangle_triangulation_finished();
 void cl_navgen_draw_phase_rectangle_triangulation();
+// Circular doubley-linked list for alorithm
+struct cdll_node;
+cdll_node *(void *data) create_cdll_node;
+void(cdll_node *node) delete_cdll_node;
+void(cdll_node *node, cdll_node **list_root) add_cdll_node_to_list;
+void(cdll_node *node, cdll_node **list_root) remove_cdll_node_from_list;
 // ---------------------------------------------------------------------------
 // NAVGEN_PHASE_MESH_DETRIANGULATION
 // ---------------------------------------------------------------------------
@@ -165,18 +172,18 @@ void() navgen_logic =
 	}
 	else if(navgen_phase == NAVGEN_PHASE_RECTANGLE_TRIANGULATION)
 	{
-		cl_navgen_draw_phase_rectangle_expansion();
 		cl_navgen_draw_phase_rectangle_vectorization();
+		cl_navgen_draw_phase_rectangle_triangulation();
 	}
 	else if(navgen_phase == NAVGEN_PHASE_MESH_DETRIANGULATION)
 	{
-		cl_navgen_draw_phase_rectangle_expansion();
 		cl_navgen_draw_phase_rectangle_vectorization();
+		cl_navgen_draw_phase_rectangle_triangulation();
 	}
 	else if(navgen_phase == NAVGEN_PHASE_DONE)
 	{
-		cl_navgen_draw_phase_rectangle_expansion();
 		cl_navgen_draw_phase_rectangle_vectorization();
+		cl_navgen_draw_phase_rectangle_triangulation();
 	}
 
 	// All draw methods
@@ -298,6 +305,26 @@ navgen_cell *(navgen_cell *cell, navgen_cell **list_root) cell_in_list =
 	}
 	return 0;
 }
+
+// Checks if a cell with the same values as 'cell' is in the linked list starting at 'list_root'
+// If it is, returns a pointer to the first matching cell,
+// Otherwise, returns 0
+navgen_cell *(navgen_cell *cell, navgen_cell **list_root) matching_cell_in_list =
+{
+	navgen_cell *cur_cell = *list_root;
+
+	while(cur_cell != 0)
+	{
+		if(cur_cell->x == cell->x && cur_cell->y == cell->y && cur_cell->z == cell->z)
+		{
+			return cur_cell;
+		}
+		cur_cell = cur_cell->next;
+	}
+
+	return 0;
+}
+
 
 navgen_cell *(int x, int y, int z, navgen_cell **list_root) get_cell_from_list =
 {
@@ -1858,8 +1885,15 @@ void cl_navgen_phase_rectangle_vectorization_step()
 					last_cell_vert = create_cell(last_neighbor_cell->x, last_neighbor_cell->y, last_neighbor_cell->z);
 		
 					// Add these two cell verts to rect1's list of verts
-					add_cell_to_list(first_cell_vert, &(rect1->verts));
-					add_cell_to_list(last_cell_vert, &(rect1->verts));
+					// Only add them if the rectangle doesn't already have a matching vertex.
+					if(matching_cell_in_list(first_cell_vert, &(rect1->verts)) == 0)
+					{
+						add_cell_to_list(first_cell_vert, &(rect1->verts));
+					}
+					if(matching_cell_in_list(last_cell_vert, &(rect1->verts)) == 0)
+					{
+						add_cell_to_list(last_cell_vert, &(rect1->verts));
+					}
 				}
 			}
 		}
@@ -1894,21 +1928,334 @@ void cl_navgen_draw_phase_rectangle_vectorization()
 // ===========================================================================================================
 // NAVGEN_PHASE_RECTANGLE_TRIANGULATION
 // ===========================================================================================================
+// ------------------------------------------------------------------------------------------------------
+// navgen_rectangle struct and linked list logic
+// ------------------------------------------------------------------------------------------------------
+// Circular doubley-linked list for alorithm, with support for any data type.
+struct cdll_node
+{
+	// Linked list nodes
+	cdll_node *next;
+	cdll_node *prev;
+
+	// Any desired data may be stored here.
+	void *data;
+};
+
+cdll_node *(void *data) create_cdll_node = 
+{
+	cdll_node *new_node = memalloc(sizeof(cdll_node));
+	new_node->next = new_node;
+	new_node->prev = new_node;
+	new_node->data = data;
+	return new_node;
+}
+
+void(cdll_node *node) delete_cdll_node = 
+{
+	// Maintain the doubley-linked list
+	if(node->next != 0 && node->prev != 0)
+	{
+		node->prev = node->next;
+	}
+	memfree(node);
+}
+
+void(cdll_node *node, cdll_node **list_root) add_cdll_node_to_list = 
+{
+	if(*list_root != 0)
+	{
+		node->next = *list_root;
+		node->prev = (*list_root)->prev;
+		((*list_root)->prev)->next = node;
+		(*list_root)->prev = node;
+	}
+	*list_root = node;
+}
+
+void(cdll_node *node, cdll_node **list_root) remove_cdll_node_from_list =
+{
+	if(node == *list_root)
+	{
+		// If there is more than one element in the list
+		if(node->next != node)
+		{
+			*list_root = node->next;
+		}
+		// There is only one element in the list
+		else
+		{
+			*list_root = 0;
+		}
+	}
+
+	(node->prev)->next = node->next;
+	(node->next)->prev = node->prev;
+	node->next = node;
+	node->prev = node;
+}
+// ------------------------------------------------------------------------------------------------------
+
 void cl_navgen_phase_rectangle_triangulation_start()
 {
 
 }
 void cl_navgen_phase_rectangle_triangulation_step()
 {
-
+	// TODO
 }
 int cl_navgen_phase_rectangle_triangulation_finished()
 {
+	// return FALSE;
 	return TRUE;
 }
 void cl_navgen_draw_phase_rectangle_triangulation()
 {
+	vector color = [0.2,0.8,0.2];
+	float alpha = 0.1;
 
+	navgen_rectangle *rect = navgen_rectangles;
+
+	while(rect != 0)
+	{
+		// FIXME - This "computes" triangles by just taking the first 3 verts, drawing as a tri, 
+		// FIXME   then shifting each of the 3 verts to the next one, drawing a tri, etc.
+
+		// FIXME - The vertices make up a concave polygon, however, there are vertices
+		// FIXME   that form a 180 degree corner. The ear clipping triangulation algorithm 
+		// FIXME   may produce 0-area triangles in this situation.
+
+
+		// TODO - Use new "create_cdll_node" data struct to sort the vertices in CCW order:
+		// TODO   Honestly, I may just want to allocate an array for each of the verts. Need to count the verts first.
+
+		int num_verts = 0;
+		navgen_cell *vert = rect->verts;
+		while(vert != 0)
+		{
+			num_verts++;
+			vert = vert->next;
+		}
+
+		
+		// One entry per vert
+		navgen_cell **verts = (navgen_cell **) memalloc(sizeof(navgen_cell*) * num_verts);
+		float *vert_angles = (float *) memalloc(sizeof(float) * num_verts);
+
+		// Populate the verts array
+		vert = rect->verts;
+		int i = 0;
+		while(vert != 0)
+		{
+			verts[i] = vert;
+			vert_angles[i] = 0;
+			i++;
+			vert = vert->next;
+		}
+		
+
+		// This sorting ensures clockwise order
+
+
+
+		//Calculating center of the polygon
+		vector center = [0,0,0];
+		for(i = 0; i < num_verts; i++)
+		{
+			vert = verts[i];
+			center += [vert->x, vert->y, vert->z];
+		}
+		center /= (float)num_verts;
+		print("Center of selected polygon: ",vtos(center),".\n\n");
+
+		//Calculating vertex angles:
+		for(i = 0; i < num_verts; i++)
+		{
+			//Calculating angle of vert
+			vert_angles[i] = atan2((verts[i])->y - center.y,(verts[i])->x - center.x);
+		}
+
+
+		//Sorting from least to greatest
+		for(i = 0; i < num_verts; i++)
+		{
+			//Finding lowest value from i to num_verts
+			float lowest_value = vert_angles[i];
+			float lowest_index = i;
+			for(float j = i; j < num_verts; j++)
+			{
+				if(vert_angles[j] < lowest_value)
+				{
+					lowest_value = vert_angles[j];
+					lowest_index = j;
+				}
+			}
+			//Swapping the lowest value with index i
+			float temp_angle = vert_angles[i];
+			vert_angles[i] = vert_angles[lowest_index];
+			vert_angles[lowest_index] = temp_angle;
+			
+			navgen_cell *temp_vert = verts[i];
+			verts[i] = verts[lowest_index];
+			verts[lowest_index] = temp_vert;
+		}
+		
+
+
+		// TODO Use this:
+		//=====================================================================
+		/*
+		if(selected_vert_count < 3)
+		{
+			print("Not enough selected vertices to make a polygon (need 3).\n");
+			return;
+		}
+		
+		if(cl_navmesh_poly_count >= cl_navmesh_polies.length)
+		{
+			print("Max polygon count reached.\n");
+			return;
+		}
+		
+		if(cl_navmesh_is_poly_selected())
+		{
+			print("This polygon already exists.\n");
+			return;
+		}
+		
+		
+		//Sorting the verts so the polygon is build consecutively (i.e. vert 0 -> vert 1 is an edge, 1->2, 2->3, and 3->0 are all edges)
+		//Furthermore, this sorting will ensure the verts are sorted in a clockwise order, so we also apply it to tris
+		
+		
+		//Printing all polygon vertices
+		print("Selected Verts: [");
+		for(float j = 0; j < selected_vert_count; j++)
+		{
+			print("(",ftos(j),", ",ftos(selected_verts[j]),", ",vtos(cl_navmesh_verts[selected_verts[j]].pos),") , ");
+		}
+		print("]\n\n");
+		
+		//Calculating center of the polygon
+		local vector center = [0,0,0];
+		for(float j = 0; j < selected_vert_count; j++)
+		{
+			center += cl_navmesh_verts[selected_verts[j]].pos;
+		}
+		center /= selected_vert_count;
+		
+		print("Center of selected polygon: ",vtos(center),".\n\n");
+		
+		float vert_angle[NAV_MAX_SELECTED_VERTS];
+		
+		//For suppressing uninitialised vert_angle compiler warning
+		vert_angle[0] = 0;
+		
+		//Calculating vertex angles:
+		for(float j = 0; j < selected_vert_count; j++)
+		{
+			//Calculating angle of vert
+			vert_angle[j] = atan2(cl_navmesh_verts[selected_verts[j]].pos.y - center.y,cl_navmesh_verts[selected_verts[j]].pos.x - center.x);
+		}
+		
+		//Sorting from least to greatest
+		for(float j = 0; j < selected_vert_count; j++)
+		{
+			//Finding lowest value from j to selected_vert_count
+			float lowest_value = vert_angle[j];
+			float lowest_index = j;
+			for(float k = j; k < selected_vert_count; k++)
+			{
+				if(vert_angle[k] < lowest_value)
+				{
+					lowest_value = vert_angle[k];
+					lowest_index = k;
+				}
+			}
+			//Swapping the lowest value with index j
+			float temp_angle = vert_angle[j];
+			vert_angle[j] = vert_angle[lowest_index];
+			vert_angle[lowest_index] = temp_angle;
+			
+			float temp_vert = selected_verts[j];
+			selected_verts[j] = selected_verts[lowest_index];
+			selected_verts[lowest_index] = temp_vert;
+		}
+		
+		//Vert angles
+		print("Sorted Verts: [");
+		for(float j = 0; j < selected_vert_count; j++)
+		{
+			print("(",ftos(j),", ",ftos(selected_verts[j]),", ",vtos(cl_navmesh_verts[selected_verts[j]].pos),") ,");
+		}
+		print("]\n\n");
+		
+		print("Sorted Vert angles: [");
+		for(float j = 0; j < selected_vert_count; j++)
+		{
+			print(", ",ftos(vert_angle[j]));
+		}
+		print("]\n\n");
+		
+		
+		
+
+		for(float i = 0; i < selected_vert_count; i++)
+		{
+			cl_navmesh_polies[cl_navmesh_poly_count].verts[i] = selected_verts[i];
+		}
+		cl_navmesh_polies[cl_navmesh_poly_count].vert_count = selected_vert_count;
+		cl_navmesh_poly_count++;
+		*/
+		//=====================================================================
+
+
+		memfree(vert_angles);
+		memfree((void*)verts);
+
+
+
+		// Proposed algorithm:
+		// Sort points on a circular doubley-linked list in CCW or CW order (see navmesh_editor for sorting points)
+		// Take first three points
+		// while(pt1 != pt3)
+		//     if the triangle made up of these points is not co-linear AND no other points in the list lie on the triangle
+		// 		       (e.g. each triangle edge is not co-linear with ANY OTHER verts on the list)
+		//         Make a triangle at these 3 points
+		//         Pop point 2 from the list
+		//         Take next three points starting at pt1 in the updated list
+		//             (pt1 = pt1; pt2 = pt1->next; pt3 = pt2->next;)
+		//     else
+		//		    Advance to next three points
+		//             (pt1 = pt1->next; pt2 = pt1->next; pt3 = pt2->next;)
+
+
+
+
+
+
+		navgen_cell *v1 = rect->verts;
+		navgen_cell *v2 = v1->next;
+		navgen_cell *v3 = v2->next;
+
+		while(TRUE) 
+		{
+			vector a = [v1->x, v1->y, v1->z];
+			vector b = [v2->x, v2->y, v2->z];
+			vector c = [v3->x, v3->y, v3->z];
+
+			cl_navmesh_draw_tri(a,b,c,color,alpha,TRUE);
+
+			v1 = v1->next;
+			if(v1 == 0) break;
+			v2 = v2->next;
+			if(v2 == 0) break;
+			v3 = v3->next;
+			if(v3 == 0) break;
+		}
+
+		rect = rect->next;
+	}
 }
 // ===========================================================================================================
 // NAVGEN_PHASE_MESH_DETRIANGULATION
