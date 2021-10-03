@@ -2,6 +2,7 @@
 //	Player.qc - Various stuff done for the player, including per-frame functions like PlayerPreThink and PlayerPostThink, also client specific stuff like PutClientInServer etc.
 //
 void(entity e) Light_None;
+void() Maps_SpawnBetaAmbience;
 
 // player animations
 
@@ -472,7 +473,7 @@ void() ClientConnect =
 
 		if (Map_Type == MAP_TYPE_BETA) {
 			Maps_ConvertEntitiesFromBeta();
-			Maps_LoadBetaWaypointData();
+			Maps_SpawnBetaAmbience();
 		} else if (Map_Type == MAP_TYPE_REQUIEM) {
 			Maps_ConvertEntitiesFromRequiem();
 		}

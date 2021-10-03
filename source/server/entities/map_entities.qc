@@ -191,6 +191,12 @@ void() place_model =
 		remove(self);
 	#endif
 
+	// hack to place fire
+    if (self.model == "progs/flame2.mdl") {
+        place_fire();
+        return;
+    }
+
 	precache_model (self.model);
 	setmodel (self, self.model);
   

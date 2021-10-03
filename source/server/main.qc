@@ -166,6 +166,7 @@ void() precaches =
 	precache_sound("sounds/misc/denybuy.wav");
 	
 	precache_sound("sounds/misc/what.wav");
+	precache_sound("sounds/ambience/amb_loop.wav");
 
 	precache_model ("models/weapons/m1911/v_colt.mdl");
 	precache_model ("models/weapons/m1911/g_colt.mdl");
@@ -287,6 +288,7 @@ void() worldspawn =
 	mappath = strzone(mappath);
 
 	LoadWaypointData();
+	Maps_LoadBetaWaypointData();
 		
 	//set game elements
 	G_STARTPOINTS = 500;

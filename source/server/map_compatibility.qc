@@ -2,6 +2,7 @@
 // map_compatibility.qc - Entitiy conversions and utility functions in relation to compatibility with several codebases
 //
 void() Maps_DeleteRequiemEntities;
+void() place_fire;
 float() Maps_SeekRequiemWorldspawnValues;
 
 //
@@ -69,6 +70,28 @@ float() Maps_DetermineMapType =
 // ==============================================================================
 
 //
+// Maps_SpawnBetaAmbience()
+// Spawns the forced ambient sound featured
+// in every NZ:P beta map.
+//
+void() forced_amb_think =
+{
+    self.nextthink = time + 12.04;
+    self.think = forced_amb_think;
+
+    sound(self, CHAN_VOICE, "sounds/ambience/amb_loop.wav", 1, ATTN_NONE);
+}
+
+void() Maps_SpawnBetaAmbience =
+{
+    entity forced_amb;
+    forced_amb = spawn();
+    forced_amb.think = forced_amb_think;
+
+    sound(self, CHAN_VOICE, "sounds/ambience/amb_loop.wav", 1, ATTN_NONE);
+}
+
+//
 // Maps_LoadBetaWaypointData()
 // Attempts to find and parse a waypoint file
 // made for NZ:P beta
@@ -76,7 +99,7 @@ float() Maps_DetermineMapType =
 void() Maps_LoadBetaWaypointData =
 {
     float file;
-    file = fopen(mappath, FILE_READ);
+    file = fopen(mapname, FILE_READ);
 
     if (file == -1)
         return;
@@ -165,6 +188,8 @@ string(string model) Maps_ConvertBetaModelProp =
             return "models/weapons/trench/g_trench.mdl";
         case "progs/g_fg.mdl":
             return "models/weapons/fg42/g_fg.mdl";
+        case "progs/sandbags.mdl":
+            return "progs/Props/sandbags.mdl";
         default:
             return model;
     }
@@ -369,6 +394,8 @@ void() item_revive =
     #ifdef PC
     self.scale = 0.85;
     #endif
+
+    self.origin_x -= 10;
 }
 
 // perk_juggernog
@@ -380,6 +407,8 @@ void() item_juggernog =
     #ifdef PC
     self.scale = 0.85;
     #endif
+
+    self.origin_x -= 10;
 }
 
 // perk_speed
@@ -391,6 +420,8 @@ void() item_speed =
     #ifdef PC
     self.scale = 0.85;
     #endif
+
+    self.origin_x -= 10;
 }
 
 // perk_double
@@ -402,6 +433,8 @@ void() item_douple =
     #ifdef PC
     self.scale = 0.85;
     #endif
+
+    self.origin_x -= 10;
 }
 
 // perk_flopper
@@ -413,6 +446,8 @@ void() item_flopper =
     #ifdef PC
     self.scale = 0.85;
     #endif
+
+    self.origin_x -= 10;
 }
 
 // perk_staminup
@@ -424,6 +459,8 @@ void() item_staminup =
     #ifdef PC
     self.scale = 0.85;
     #endif
+
+    self.origin_x -= 10;
 }
 
 // perk_pap
@@ -442,6 +479,12 @@ void() item_pap =
 // place_model
 void() func_model =
 {
+    // hack to place fire
+    if (self.model == "progs/flame2.mdl") {
+        place_fire();
+        return;
+    }
+
     self.model = Maps_ConvertBetaModelProp(self.model);
     place_model();
 }
