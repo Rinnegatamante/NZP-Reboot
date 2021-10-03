@@ -847,6 +847,15 @@ void(float damage, vector dir, vector org, vector plane, entity hit_ent, float s
 				door_use();
 			self = old;
 			return;
+		} else if (hit_ent.solid == SOLID_BSP && hit_ent != world) {
+			entity old2;
+			old2 = self;
+			self = hit_ent;
+			self.health -= damage;
+
+			if (self.health <= 0)
+				self.th_die();
+			self = old2;
 		}
 		
 		SpawnBlood (org, vel, damage*10);
