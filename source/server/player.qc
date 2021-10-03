@@ -151,7 +151,11 @@ void() PlayerJump =
 	
 	self.oldz = self.origin_z;
 
-	self.velocity_z = 230;
+	if (Map_Type == MAP_TYPE_BETA) {
+		self.velocity_z = 200;
+	} else {
+		self.velocity_z = 230;
+	}
 }
 
 void(float override) JumpCheck =
@@ -566,7 +570,7 @@ void() PlayerSpawn =
 	// Beta uses Quake scale
 	if (Map_Type == MAP_TYPE_BETA) {
 		setsize(self, VEC_HULL_MIN, VEC_HULL_MAX);
-		self.view_ofs = '0 0 22';
+		self.view_ofs = '0 0 16';
 	} 
 	// Everything else uses half-life sizes
 	else {

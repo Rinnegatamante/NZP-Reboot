@@ -182,7 +182,7 @@ string(string model) Maps_ConvertBetaModelProp =
         case "progs/flag_n_w_h.mdl":
             return "models/props/flag_n_w_h.mdl";
         case "progs/grenade.mdl":
-            return "models/weapons/grenade/g_nade.mdl";
+            return "models/weapons/grenade/g_grenade.mdl";
         case "progs/jeep.mdl":
             return "progs/Props/jeep.mdl";
         case "progs/lamp.mdl":
@@ -190,6 +190,7 @@ string(string model) Maps_ConvertBetaModelProp =
         case "progs/radio.mdl":
             return "models/props/radio.mdl";
         case "progs/sandbags.mdl":
+            self.scale = 0.85;
             return "progs/Props/sandbags.mdl";
         case "progs/teddy.mdl":
             return "models/props/teddy.mdl";
@@ -438,16 +439,6 @@ void() Maps_ConvertEntitiesFromBeta =
 
         e = find(e, classname, "buy_weapon");
     }
-
-    // place_model
-    // motolegacy -- experimenting with handling this in spawn function now (03/10/2021)
-    /*e = find(world, classname, "place_model");
-    while(e != world) {
-        e.model = Maps_ConvertBetaModelProp(e.model);
-        setmodel(e, e.model);
-
-        e = find(e, classname, "place_model");
-    }*/
 
     // power_switch
     e = find(world, classname, "power_switch");
