@@ -197,6 +197,9 @@ void() place_model =
         return;
     }
 
+	// convert old model path to a new path
+	self.model = Maps_ConvertBetaModelProp(self.model);
+
 	precache_model (self.model);
 	setmodel (self, self.model);
   

@@ -152,44 +152,139 @@ void() Maps_LoadBetaWaypointData =
 
 //
 // Maps_ConvertBetaModelProp()
-// Converts some of the vanilla NZ:P Beta model
+// Converts most of the vanilla NZ:P Beta model
 // paths to the Reboot location/model
+//
+// The following props are omitted:
+// * Weapon view models (v_*.mdl)
+// * The astronaut player model (atol.mdl)
+// * Zombie and Hellhound variants
+// * Power-Ups
 //
 string(string model) Maps_ConvertBetaModelProp =
 {
     switch(model) {
-        case "progs/g_gewehr.mdl":
-            return "models/weapons/gewehr/g_gewehr.mdl";
-        case "progs/lamp.mdl":
-            return "models/props/lamp_oil.mdl";
-        case "progs/g_kars.mdl":
-            return "models/weapons/kar/g_kars.mdl";
+        //
+        // props
+        //
+        case "progs/barrel.mdl":
+            return "models/props/barrel_m.mdl";
+        case "progs/body_bag_back_wall.mdl":
+            return "models/props/body_bag_back_wall.mdl";
+        case "progs/body_bag_sideways.mdl":
+            return "models/props/body_bag_sideways.mdl";
+        case "progs/body_bag_flat.mdl":
+            return "models/props/body_bag_flat.mdl";
+        case "progs/body_bag_head.mdl":
+            return "models/props/body_bag_head.mdl";
+        case "progs/dentist_chair.mdl":
+            return "progs/Props/dentist_chair.mdl";
+        case "progs/flag_n_w_h.mdl":
+            return "models/props/flag_n_w_h.mdl";
         case "progs/grenade.mdl":
-            return "models/weapons/grenade/g_grenade.mdl";
-        case "progs/g_betty.mdl":
-            return "models/weapons/grenade/g_betty.mdl";
-        case "progs/g_mp40.mdl":
-            return "models/weapons/mp40/g_mp40.mdl";
-        case "progs/g_db.mdl":
-            return "models/weapons/db/g_db.mdl";
-        case "progs/g_stg.mdl":
-            return "models/weapons/stg/g_stg.mdl";
-        case "progs/g_ppsh.mdl":
-            return "models/weapons/ppsh/g_ppsh.mdl";
-        case "progs/g_bowie.mdl":
-            return "progs/GModels/g_bowie.mdl";
-        case "progs/g_mp5.mdl":
-            return "models/weapons/thomp/g_thomp.mdl";
-        case "progs/g_m1a1.mdl":
-            return "models/weapons/m1carbine/g_m1a1.mdl";
+            return "models/weapons/grenade/g_nade.mdl";
         case "progs/jeep.mdl":
             return "progs/Props/jeep.mdl";
-        case "progs/g_trench.mdl":
-            return "models/weapons/trench/g_trench.mdl";
-        case "progs/g_fg.mdl":
-            return "models/weapons/fg42/g_fg.mdl";
+        case "progs/lamp.mdl":
+            return "models/props/lamp_oil.mdl";
+        case "progs/radio.mdl":
+            return "models/props/radio.mdl";
         case "progs/sandbags.mdl":
             return "progs/Props/sandbags.mdl";
+        case "progs/teddy.mdl":
+            return "models/props/teddy.mdl";
+        case "progs/tree.mdl":
+            return "models/props/tree.mdl";
+        case "progs/treef.mdl":
+            return "models/props/treef.mdl";
+        //
+        // machines
+        //
+        case "progs/double_tap.mdl":
+            return "models/machines/double_tap.mdl";
+        case "progs/flopper.mdl":
+            return "models/machines/flopper.mdl";
+        case "progs/juggernog.mdl":
+            return "models/machines/juggernog.mdl";
+        case "progs/mystery.mdl":
+            return "models/machines/mystery.mdl";
+        case "progs/pap.mdl":
+            return "models/machines/pap.mdl";
+        case "progs/power_switch.mdl":
+            return "models/machines/power_switch.mdl";
+        case "progs/quick_revive.mdl":
+            return "models/machines/quick_revive.mdl";
+        case "progs/speed_cola.mdl":
+            return "models/machines/speed_cola.mdl";
+        case "progs/z_light.mdl":
+            return "models/machines/zapper/z_light.mdl";
+        case "progs/z_switch.mdl":
+            return "models/machines/zapper/z_switch.mdl";
+        case "progs/z_zap.mdl":
+            return "models/machines/zapper/z_zap.mdl";
+        //
+        // weapon world models
+        //
+        case "progs/g_357.mdl":
+            return "models/weapons/357/g_357.mdl";
+        case "progs/g_bar.mdl":
+            return "models/weapons/bar/g_bar.mdl";
+        case "progs/g_betty.mdl":
+            return "models/weapons/grenade/g_betty.mdl";
+        case "progs/g_Bk.mdl":
+            return "models/weapons/bk/g_bk.mdl";
+        case "progs/g_bowie.mdl":
+            return "progs/GModels/g_bowie.mdl";
+        case "progs/g_browning.mdl":
+            return "models/weapons/browning/g_browning.mdl";
+        case "progs/g_colt.mdl":
+            return "models/weapons/m1911/g_colt.mdl";
+        case "progs/g_db.mdl":
+            return "models/weapons/db/g_db.mdl";
+        case "progs/g_fg.mdl":
+            return "models/weapons/fg42/g_fg.mdl";
+        // 'flamer' was a duplicate, but animated.
+        case "progs/g_flame.mdl":
+        case "progs/g_flamer.mdl":
+            return "models/weapons/m2flame/g_m2flame.mdl";
+        case "progs/g_gewehr.mdl":
+            return "models/weapons/gewehr/g_gewehr.mdl";
+        case "progs/g_kar.mdl":
+            return "models/weapons/kar/g_kar.mdl";
+        case "progs/g_kars.mdl":
+            return "models/weapons/kar/g_kars.mdl";
+        case "progs/g_m1.mdl":
+            return "models/weapons/garand/g_m1.mdl";
+        case "progs/g_m1a1.mdl":
+            return "models/weapons/m1carbine/g_m1a1.mdl";
+        case "progs/g_mg.mdl":
+            return "models/weapons/mg/g_mg.mdl";
+        case "progs/g_morphine.mdl":
+            return "progs/GModels/g_morphine.mdl";
+        case "progs/g_mp5.mdl":
+            return "models/weapons/thomp/g_thomp.mdl";
+        case "progs/g_mp40.mdl":
+            return "models/weapons/mp40/g_mp40.mdl";
+        case "progs/g_panzer.mdl":
+            return "models/weapons/panzer/g_panzer.mdl";
+        case "progs/g_ppsh.mdl":
+            return "models/weapons/ppsh/g_ppsh.mdl";
+        case "progs/g_ptrs.mdl":
+            return "models/weapons/ptrs/g_ptrs.mdl";
+        case "progs/g_ray.mdl":
+            return "models/weapons/ray/g_ray.mdl";
+        // 'sawn' and 'sawnoff' are duplicates..
+        case "progs/g_sawn.mdl":
+        case "progs/g_sawnoff.mdl":
+            return "models/weapons/sawnoff/g_sawnoff.mdl";
+        case "progs/g_stg.mdl":
+            return "models/weapons/stg/g_stg.mdl";
+        case "progs/g_tesla.mdl":
+            return "models/weapons/tesla/g_tesla.mdl";
+        case "progs/g_thomp.mdl":
+            return "models/weapons/thomp/g_thomp.mdl";
+        case "progs/g_trench.mdl":
+            return "models/weapons/trench/g_trench.mdl";
         default:
             return model;
     }
@@ -345,13 +440,14 @@ void() Maps_ConvertEntitiesFromBeta =
     }
 
     // place_model
-    e = find(world, classname, "place_model");
+    // motolegacy -- experimenting with handling this in spawn function now (03/10/2021)
+    /*e = find(world, classname, "place_model");
     while(e != world) {
         e.model = Maps_ConvertBetaModelProp(e.model);
         setmodel(e, e.model);
 
         e = find(e, classname, "place_model");
-    }
+    }*/
 
     // power_switch
     e = find(world, classname, "power_switch");
@@ -485,6 +581,7 @@ void() func_model =
         return;
     }
 
+    // convert old model path to a new path
     self.model = Maps_ConvertBetaModelProp(self.model);
     place_model();
 }
