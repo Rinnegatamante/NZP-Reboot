@@ -38,8 +38,6 @@ psp/nzportable/nzp/data/ach.dat
 
 *.dat
 
-pc/nzp/screenshots/*
-
 # Map ignores
 pc/nzp/maps/*.map
 *.max

@@ -42,8 +42,6 @@ noref void(float apiver, string enginename, float enginever) CSQC_Init =
 
 	cvar_set("sv_cheats", ftos(1));
 		
-	cl_register_navmesh_commands();
-	
 	//print("CSQC Started\n");
 	dummy = spawn();
 	if(serverkey("constate") == "disconnected")
@@ -169,9 +167,6 @@ noref void() CSQC_WorldLoaded =
 	mzlflash.renderflags = vmodel.renderflags;
 	mzlflash.origin = vmodel.origin + vmodel_muzzleoffset;
 	
-	mappath = strcat("maps/",mapname);
-	mappath = strzone(mappath);
-
 	playerpoints[1] = -1;
 	playerpoints[2] = -1;
 	playerpoints[3] = -1;
