@@ -1,0 +1,15 @@
+couldn't exec config.cfg
+couldn't exec autoexec.cfg
+
+Engine Version: FTE SVN 5774M Oct  3 2020
+Setting windowed mode 1024*768 OpenGL
+GL_VENDOR: Intel Inc.
+GL_RENDERER: Intel HD Graphics 4000 OpenGL Engine
+GL_VERSION: 2.1 INTEL-12.10.12
+Unable to init libjpeg
+Unable to load libpng16.so.16
+Initing default SDL audio device.
+OpenGL renderer initialized
+ Nazi Zombies Portable Initialized 
+]condump
+

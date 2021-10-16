@@ -1,5 +1,8 @@
 # Compiled Object files
 *conhistory.txt
+*.DS_STORE
+*.o
+*.d
 
 pc/nzp/source/fteqcc\.log
 
@@ -12,6 +15,26 @@ pc/nzp/csprogs.dat
 pc/nzp/csprogs\.lno
 
 pc/conhistory.txt
+
+pc/nzp/iplog.txt
+
+pc/nzp/ssqccore.txt
+
+pc/nzp/data/ach.dat
+
+psp/nzportable/nzp/progs.dat
+
+psp/nzportable/nzp/progs\.lno
+
+nx/nzportable/nzp/progs.dat
+
+nx/nzportable/nzp/progs.lno
+
+nx/nzportable/nzp/progs\.lno
+
+psp/nzportable/nzp/progs.lno
+
+psp/nzportable/nzp/data/ach.dat
 
 *.dat
 
@@ -30,3 +53,6 @@ pc/nzp/maps/*.map
 *.prt
 *.pts
 *.wic
+cosmodrome* #moto - sorry lol
+
+source/nx/build/*

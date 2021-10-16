@@ -1,0 +1,4 @@
+#pragma sourcefile csprogs.src
+#pragma sourcefile ssprogs.src
+#pragma sourcefile pspprogs.src
+#pragma sourcefile nxprogs.src
