@@ -189,9 +189,9 @@ void() SUB_Null2 = {};
 #define     VEC_VIEW_OFS  '0 0 32'
 
 #ifdef PSP
-#define 	MAX_ZOMB 	  12
+#define 	MAX_ZOMBIES 	  12
 #else
-#define 	MAX_ZOMB 	  24
+#define 	MAX_ZOMBIES 	  24
 #endif
 
 vector	trace_plane_normal;
@@ -367,8 +367,6 @@ float sounds_playing;
 
 float rounds;
 float rounds_change;
-
-#define MAX_ZOMBIES 12
 
 //Waypoints
 void () Waypoint_Logic;

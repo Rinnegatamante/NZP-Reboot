@@ -71,6 +71,9 @@ void() StartFrame =
 			}
 			return;
 		}
+	if (navmesh_edit_mode) {
+		return;
+	}
 		
 	
 	if (roundinit) {
@@ -286,7 +289,18 @@ void() worldspawn =
 	mappath = strcat("maps/", mapname);
 	mappath = strzone(mappath);
 
+	sv_gravity = cvar("sv_gravity");
+	sv_maxspeed = cvar("sv_maxspeed");
+	
+	print("Gravity: ",ftos(sv_gravity),", maxspeed: ",ftos(sv_maxspeed),"\n");
+
 	LoadWaypointData();
+	sv_load_navmesh_data();
+		
+	//Allocating memory for the zombie's pathfinding data
+	sv_zombie_pathfind_result = memalloc(sizeof(pathfind_result) * MAX_ZOMBIES);
+	//I should technically deallocate the memory, but I've nowhere to put this, and it SHOULD be cleared automatically upon vm reset
+	//memfree(sv_zombie_pathfind_result);
 		
 	//set game elements
 	G_STARTPOINTS = 500;
