@@ -1452,11 +1452,6 @@ void() Create_Floating_Weapon =
 
 void() mystery_box_tp_spot = 
 {
-	entity mbox;
-	mbox = find(world, classname, "mystery");
-	if (!mbox)	
-		remove(self);		// if we don't have a mystery box why do we have a teleport spot
-		
 	precache_model ("progs/Misc/teddy.mdl"); 
 	
 	self.solid=SOLID_TRIGGER;
@@ -1633,20 +1628,22 @@ void() Load_Mbox_Data =
 			BoxWeapons[i] = stof(h);
 			
 			if (stof(h) == 1)
-				weapons_all_disabled = 0;
-
-			// Precache Weapon Data if enabled
-			if (BoxWeapons[i]) {
-				precache_model(GetWeaponModel(Getweaponid(i), 0));
-				precache_model(GetWeaponModel(Getweaponid(i), 1));
-				precache_extra(Getweaponid(i));
-			}	
+				weapons_all_disabled = 0;	
 		}
 	}
 	
 	if (weapons_all_disabled) {
 		for (float i = 0; i < 25; i++) {
 			BoxWeapons[i] = 1;
+		}
+	}
+
+	for(float i = 0; i < 25; i++) {
+		// Precache Weapon Data if enabled
+		if (BoxWeapons[i]) {
+			precache_model(GetWeaponModel(Getweaponid(i), 0));
+			precache_model(GetWeaponModel(Getweaponid(i), 1));
+			precache_extra(Getweaponid(i));
 		}
 	}
 }
