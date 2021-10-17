@@ -260,6 +260,100 @@ void DrinkPerk(float perk) {
 }
 
 //
+// SpawnSpark(where, time_alive)
+// Technically a utilty function, spawns a spark/elec effect
+// at the given origin and lasts until the time given is up.
+//
+void() SparkThink =
+{
+	self.frame++;
+
+	if (self.frame >= 3)
+		self.frame = 0;
+	
+	// suicide timer!
+	if(self.ltime < time) {
+		remove(self);
+	}
+
+	self.nextthink = time + 0.05;
+}
+
+void(vector where, float time_alive) SpawnSpark =
+{
+	entity spark = spawn();
+	setmodel(spark, "models/misc/lightning.spr");
+	setorigin(spark, where);
+	spark.think = SparkThink;
+	spark.nextthink = time + 0.05;
+	spark.ltime = time + time_alive;
+}
+
+//
+// ReviveGoAway()
+// Called when the max amount of solo revives have been used.
+// Does a little animation and then 'teleports' away.
+//
+void() StopReviveAnimation =
+{
+	self.velocity = 0;
+
+	setmodel(self, ""); // We don't want to remove Revive in the event of a Soft_Restart..
+	SpawnSpark(self.origin, 0.65); // Spawn a Spark at the position
+	self.origin = self.oldvelocity; // Restore old position
+	Light_None(self); // Remove light effect
+
+	sound(self,CHAN_ITEM,"sounds/pu/drop.wav",1,ATTN_NONE); // Play a fitting sound
+}
+
+void() ReviveAnimation =
+{
+	if (self.score == 0)
+		self.angles_z += 6;
+	else
+		self.angles_z -= 6;
+
+	if (self.angles_z - self.movement_z >= 20)
+		self.score = 1;
+	else if (self.angles_z - self.movement_z <= -20)
+		self.score = 0;
+
+	if(self.ltime < time) {
+		StopReviveAnimation();
+	} else {
+		self.nextthink = time + 0.05;
+	}
+}
+
+void() ReviveGoAwayForReal =
+{
+	makevectors(self.angles);
+	self.movetype = MOVETYPE_NOCLIP;
+	self.velocity = v_up * 7;
+
+	sound(self, CHAN_ITEM, "sounds/pu/byebye.wav", 1, ATTN_NORM);
+
+	// Do our silly little animation for 6 seconds
+	self.ltime = time + 6;
+	self.think = ReviveAnimation;
+	self.nextthink = time + 0.05;
+}
+
+void() ReviveGoAway =
+{
+	// First start a timer, we want to wait until the player finishes drinking
+	// before starting the animation.
+	self.think = ReviveGoAwayForReal;
+	self.nextthink = time + 4;
+
+	// Save our original position to restore on restart
+	self.oldvelocity = self.origin;
+
+	// Same with angle
+	self.movement = self.angles;
+}
+
+//
 // touch_perk()
 // Executed on touch; prompt purchase and drink if requirements met.
 // -----
@@ -293,7 +387,7 @@ void() touch_perk =
 	backupWepSkin = other.weaponskin;
 
 	// Don't prompt if our hands or busy or we already have the perk
-	if (!(other.perks & self.style) && other.fire_delay < time) {
+	if (!(other.perks & self.style) && other.fire_delay < time && self.revivesoda < 3) {
 		// sequence = perk ID in client
 		useprint(other, 9, self.cost, self.sequence);
 
@@ -307,10 +401,10 @@ void() touch_perk =
 			// Do Self-Revive checks
 			if (self.classname == "perk_revive" && !coop && !deathmatch) {
 				// Increment self-revive count
-				other.revivesoda++;
+				self.revivesoda++;
 
-				if (other.revivesoda >= 3) {
-					setmodel(self, ""); // We don't want to remove Revive in the event of a Soft_Restart..
+				if (self.revivesoda >= 3) {
+					ReviveGoAway();
 				}
 			}
 		} else if (other.button7) {
@@ -1301,7 +1395,7 @@ void() Float_Change =
 			self.angles_y = self.angles_y - 90;
 			self.nextthink = time + 5;
 			self.think = remove_box;
-			sound (self, CHAN_ITEM, "sounds/pu/byebye.wav", 1, ATTN_NORM);	//naievil FIXME -- change sound
+			sound (self, CHAN_ITEM, "sounds/pu/byebye.wav", 1, ATTN_NORM);
 			ach_tracker_luck++;
 
 			if (ach_tracker_luck >= 10)

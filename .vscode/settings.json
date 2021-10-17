@@ -2,6 +2,10 @@
     "files.associations": {
         "*.qc": "c",
         "*.gsc": "c",
-        "*.q1": "c"
+        "*.csc": "c",
+        "*.gsh": "c",
+        "*.h": "c",
+        "*.q1": "c",
+        "vector": "c"
     }
 }
