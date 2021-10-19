@@ -704,8 +704,8 @@ void () Waypoint_Functions =
 			Load_Waypoints_Legacy();
 			break;
 		case 109:
-			Remove_Waypoint();
-			//VisualizePathfind();
+			//Remove_Waypoint();
+			VisualizePathfind();
 			break;
 		case 110:
 			Auto_Link_Waypoints();

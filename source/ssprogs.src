@@ -3,6 +3,7 @@
 server/ssdefs.qc
 shared/customdefs.qc
 shared/weapon_defines.qc
+shared/navmesh_defines.qc
 server/customdefs.qc
 server/clientfuncs.qc
 
@@ -27,7 +28,8 @@ server/weapons/weapon_core.qc
 
 server/entities/powerups.qc
 
-server/ai/pathfind_code.qc
+server/ai/navmesh_core.qc
+server/ai/pathfind_core.qc
 server/ai/ai_core.qc
 server/ai/waypoints_core.qc
 server/ai/zombie_core.qc

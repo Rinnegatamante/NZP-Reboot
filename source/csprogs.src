@@ -4,8 +4,12 @@ client/csdefs.qc
 shared/customdefs.qc
 shared/sound_enhanced.qc
 shared/weapon_defines.qc
+shared/navmesh_defines.qc
 client/customdefs.qc
 client/menu.qc
 client/achievements.qc
 client/hud.qc
 client/main.qc
+client/navmesh_editor.qc
+client/navmesh_gen_utils.qc
+client/navmesh_gen.qc

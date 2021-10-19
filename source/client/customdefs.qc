@@ -54,6 +54,13 @@ const float MENU_ACHIEVEMENTS = 4096;
 const float MENU_CONSETTINGS = 8192;
 const float MENU_AUDSETTINGS = 16384;
 
+vector	VEC_HULL_MIN = '-16 -16 -32';
+vector	VEC_HULL_MAX = '16 16 40';
+vector	VEC_HULL2_MIN = '-32 -32 -24';
+vector	VEC_HULL2_MAX = '32 32 64';
+vector  VEC_VIEW_OFS  = '0 0 32';
+
+string mappath;
 
 float useprint_type;
 float useprint_weapon;
@@ -109,6 +116,25 @@ float achievement_pages;
 
 
 float K_LEFTDOWN, K_RIGHTDOWN, K_BACKDOWN, K_FORWARDDOWN;
+
+float rounds;
+
+#define printf(x, ...) print(sprintf(x, __VA_ARGS__))
+
+//Navmesh defs
+void() navgen_start;
+void() navgen_logic;
+
+void() cl_register_navmesh_commands;
+float(string cmd) cl_navmesh_console_commands;
+float cl_navmesh_mode;
+void() cl_navmesh_editor_draw;
+// void() cl_navmesh_gen_navmesh;
+// void() cl_navmesh_render_gen;
+// void() cl_navgen_free_all_verts;
+// void() cl_navgen_register_commands;
+// float(string cmd) cl_navgen_console_commands;
+
 
 #define 	P_JUG		1
 #define 	P_DOUBLE	2

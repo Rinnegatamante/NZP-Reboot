@@ -42,6 +42,8 @@ noref void(float apiver, string enginename, float enginever) CSQC_Init =
 
 	cvar_set("sv_cheats", ftos(1));
 		
+	cl_register_navmesh_commands();
+	
 	//print("CSQC Started\n");
 	dummy = spawn();
 	if(serverkey("constate") == "disconnected")
@@ -167,6 +169,9 @@ noref void() CSQC_WorldLoaded =
 	mzlflash.renderflags = vmodel.renderflags;
 	mzlflash.origin = vmodel.origin + vmodel_muzzleoffset;
 	
+	mappath = strcat("maps/",mapname);
+	mappath = strzone(mappath);
+
 	playerpoints[1] = -1;
 	playerpoints[2] = -1;
 	playerpoints[3] = -1;
@@ -534,6 +539,10 @@ noref void(float width, float height, float menushown) CSQC_UpdateView =
 	deltalisten("models/weapons/pistol/pistol.iqm", add_outline, 0);*/
 	//deltalisten("models/humanoid_simplerig.iqm", add_outline, 0);
 	
+	if(cl_navmesh_mode == TRUE) {
+		cl_navmesh_editor_draw();
+	}
+
 	//does what you think it does
 	renderscene();
 
@@ -586,6 +595,8 @@ noref float(string cmd) CSQC_ConsoleCommand =
 			return TRUE;
 			break;
 		default:
+			if(cl_navmesh_console_commands(cmd))
+				return TRUE;
 			return FALSE;
 	}
 	return FALSE;

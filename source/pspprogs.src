@@ -4,6 +4,7 @@
 psp/QC/Defs.qc                                             // These HAVE to stay
 shared/customdefs.qc
 shared/weapon_defines.qc
+shared/navmesh_defines.qc
 server/customdefs.qc
 server/clientfuncs.qc
 

@@ -110,3 +110,23 @@ perse
 		alphaGen entity
 	}
 }
+
+debug/wireframe
+{
+	cull disable
+	program shaders/outline.glsl
+	{
+	}
+}
+
+debug/solid_nocull
+{
+	cull disable
+	{
+		alphaGen vertex
+		rgbGen vertex
+		map $nearest:textures/dev/white.tga
+		blendFunc blend
+	}
+}
+

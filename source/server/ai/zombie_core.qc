@@ -682,7 +682,6 @@ void() zombie_hop10_5=[	$hop10,	SUB_Null		] {self.frame = self.head.frame = 122;
 																makeCrawler(self); 
 																return;
 															}
-															self.movetype = MOVETYPE_WALK;
 															self.th_walk();
 														};
 
@@ -1367,7 +1366,10 @@ void(float i) spawnSingleZombEnt =
 	zSpawn.classname = "freeZombieEntity";
 	zSpawn.aistatus = "0";
 	zSpawn.goaldummy = spawn();
+	setmodel(zSpawn.goaldummy,"models/way/normal_way.spr");
 	zSpawn.goaldummy.classname = "waypoint_target";
+	zSpawn.index = i;
+	zSpawn.customphysics = ai_physics_movement;
 	
 	zSpawn.head = spawn();
 	zSpawn.head.classname = "in_ai_zombie_head";
@@ -1465,7 +1467,7 @@ float() getMaxZombies =
 	if (dogWave == true) {
 		return 2;
 	} else {
-		return MAX_ZOMB;
+		return MAX_ZOMBIES;
 	}
 }
 
@@ -1531,21 +1533,11 @@ void(entity where) spawn_a_zombieB =
 	szombie.hop_step = 0;
 	szombie.gravity = 1.0;
 	
-	szombie.mins = '-8 -8 -32';//-16 16 -32
-	szombie.maxs = '8 8 30';//16 16 40
-	setsize (szombie, szombie.mins, szombie.maxs);//-16,-16,-32,16,16,40
-	//Setting Uniform skin=================
-	/*if(random() > 0.5)
-	{
-		szombie.skin = 1;
-		szombie.larm.skin = 1;
-		szombie.rarm.skin = 1;
-	}
-	//Setting Skin
-	if(random() < 0.5)
-		szombie.head.skin = 0;
-	else
-		szombie.head.skin = 1;*/
+	//szombie.mins = '-8 -8 -32';//-16 16 -32
+	//szombie.maxs = '8 8 30';//16 16 40
+	szombie.mins = '-16 -16 -32';//-16 16 -32
+	szombie.maxs = '16 16 40';//16 16 40
+	setsize (szombie, szombie.mins, szombie.maxs);
 	
 	local float tex;
 	tex = random();
@@ -1568,6 +1560,7 @@ void(entity where) spawn_a_zombieB =
 	szombie.aistatus = "1";
 	setorigin (szombie.goaldummy, '0 0 0');
 	szombie.origin_z = szombie.origin_z + 1;
+	szombie.true_org_z = szombie.origin_z;
 	szombie.outside = true;
 	szombie.takedamage = DAMAGE_YES;
 	setorigin(szombie, szombie.origin);

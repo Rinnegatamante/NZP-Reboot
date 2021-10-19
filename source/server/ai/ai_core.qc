@@ -1,5 +1,166 @@
 void(float what) play_sound_z;
 
+
+//Duplicate of ai_physics_movement, but does the move in x-axis first then y-axis (for sliding along walls, etc)
+void() ai_component_wise_physics_movement = 
+{
+	float max_step_size = 18;//max stair step size pulled straight from engine defs
+	float max_slope = 10.4;//18/tan(60) = 10.4, the length of the triangle formed by the max walkable slope of 60 degrees, and the max step height
+	
+	vector goal_org;
+	
+	vector org;
+	
+	vector delta_org;
+	
+	//Iterate over x-axis then y-axis
+	for(float i = 0; i < 2; i++)
+	{
+		org = [self.origin_x, self.origin_y, self.true_org_z];
+		
+		delta_org = [0,0,0];
+		delta_org[i] = self.velocity[i] * frametime;
+		
+		goal_org = org + delta_org;
+	
+		//Push down from a step above goal org to find result position
+		
+		vector above_goal = goal_org + [0,0,max_step_size];
+		vector below_goal = goal_org - [0,0,max_step_size];
+		
+		tracebox(above_goal,self.mins,self.maxs,below_goal,MOVE_NOMONSTERS,self);
+		
+		if(trace_allsolid)
+			continue;
+			
+		if(trace_startsolid)
+		{
+			tracebox(goal_org,self.mins,self.maxs,below_goal,MOVE_NOMONSTERS,self);
+			if(trace_allsolid || trace_startsolid)
+				continue;
+		}
+		
+		if(trace_fraction >= 1)
+		{
+			//We walked off of a ledge
+			self.true_org_z = goal_org_z;
+			setorigin(self,goal_org);
+			self.flags &= ~FL_ONGROUND;
+			continue;
+		}
+		
+		self.origin_x = trace_endpos_x;
+		self.origin_y = trace_endpos_y;
+		self.true_org_z = trace_endpos_z;
+		self.origin_z += 0.05*(self.true_org_z - self.origin_z);
+		setorigin(self, self.origin);
+		self.flags |= FL_ONGROUND;
+	}
+}
+
+
+void() ai_physics_movement =
+{
+	if(self.think && self.nextthink < time)
+	{
+		self.think();
+	}
+	
+	//Don't run movement on non-instantiated zombie ents
+	if(strncmp(self.aistatus,"1"))
+	{
+		return;
+	}
+	
+	if(self.health <= 0)
+	{
+		self.velocity.x = self.velocity.y = 0;
+	}
+	
+	float max_step_size = 18;//max stair step size pulled straight from engine defs
+	float max_slope = 10.4;//18/tan(60) = 10.4, the length of the triangle formed by the max walkable slope of 60 degrees, and the max step height
+	
+	vector goal_org;
+	
+	vector org = [self.origin_x, self.origin_y, self.true_org_z];
+	
+	
+	if(!(self.flags & FL_ONGROUND))
+	{
+		self.velocity_z  -= self.gravity * sv_gravity * frametime;
+		
+		//Clamping to server terminal velocity (-sv_maxspeed -> sv_maxspeed)
+		self.velocity_z = max(min(self.velocity_z, sv_maxspeed), -sv_maxspeed);
+		
+		goal_org = org + [0,0,self.velocity.z] * frametime;
+		
+		tracebox(org,self.mins,self.maxs,goal_org,MOVE_NOMONSTERS,self);
+		
+		//If falling and hit something
+		if(self.velocity.z < 0 && trace_fraction < 1)
+		{	
+			self.flags |= FL_ONGROUND;
+		}
+		
+		self.true_org_z = trace_endpos_z;
+		setorigin(self, trace_endpos);
+		return;
+	}
+	
+	
+	//=======================================================================================================================================
+	//This code is a translated version of dquake's step movetype
+	
+	goal_org = org + self.velocity * frametime;
+	
+	//Push down from a step above goal org to find result position
+	
+	vector above_goal = goal_org + [0,0,max_step_size];
+	vector below_goal = goal_org - [0,0,max_step_size];
+	
+	tracebox(above_goal,self.mins,self.maxs,below_goal,MOVE_NOMONSTERS,self);
+	
+	if(trace_allsolid)
+	{
+		//Try sliding along walls
+		ai_component_wise_physics_movement();
+		return;
+	}
+		
+	if(trace_startsolid)
+	{
+		tracebox(goal_org,self.mins,self.maxs,below_goal,MOVE_NOMONSTERS,self);
+		if(trace_allsolid || trace_startsolid)
+		{
+			//Try sliding along walls
+			ai_component_wise_physics_movement();
+			return;
+		}
+	}
+	
+	if(trace_fraction >= 1)
+	{
+		//We walked off of a ledge
+		self.true_org_z = goal_org_z;
+		setorigin(self,goal_org);
+		self.flags &= ~FL_ONGROUND;
+		return;
+	}
+	
+	self.origin_x = trace_endpos_x;
+	self.origin_y = trace_endpos_y;
+	self.true_org_z = trace_endpos_z;
+	//Lerping z-height:
+	self.origin_z += 0.05*(self.true_org_z - self.origin_z);
+	
+	setorigin(self, self.origin);
+	
+
+	self.flags |= FL_ONGROUND;
+	//=======================================================================================================================================
+};
+
+
 void() path_corner_touch =
 {
 	self.origin_z = self.origin_z + 32;
@@ -148,15 +309,21 @@ void(float dist, vector vec) do_walk_to_vec =
 	ChangeYaw();
 	vector new_velocity;
 	
+	//Don't consider z-component
+	vector goal = [vec.x, vec.y, self.origin.z];
+	
 	float len;
-	len = vlen(self.origin - vec);
+	len = vlen(self.origin - goal);
 	
 	if(dist > len)//if we're moving past our goal position
 	{
+		//FIXME: this may fix a glitch with a navmesh's innacuracy
+		//	setorigin(self,goal);
+		//	self.velocity = [0,0,0];
 		dist = len;
 	}
 	//This movement method is moving directly towards the goal, regardless of where our yaw is facing (fixes several issues)
-	new_velocity = normalize(vec - self.origin) * dist * 10;
+	new_velocity = normalize(goal - self.origin) * dist * 10;//10 comes from logic ticks per second
 	
 	new_velocity_z = self.velocity_z;
 	self.velocity = new_velocity;
@@ -476,64 +643,70 @@ float() TryWalkToEnemy =
 	} else {	
 		return 0;	
 	}		
-};
-
-#ifndef PC
-float() SetUpGoalDummy =
-{
-	self.goaldummy.origin = Get_Waypoint_Near(self);
-	setorigin(self.goaldummy,self.goaldummy.origin);
-	self.goalentity = self.goaldummy;
-	if (self.goalentity)
-	{
-		//setmodel(self.goalentity, "progs/Props/teddy.mdl");//on  waypoint
-		//if (cvar("developer"))
-	}
-	else
-		bprint(PRINT_HIGH, "Could not find waypoint for zombie\n");
-	
-	return 1;//because we can't actually know if it was good or not... yet
-};
-#endif
+}
 
 void() PathfindToEnemy =
 {
-	float path_result;
-	float path_failure;
-
-	//just to stop any warns.
-	path_failure = 0;
-
-	#ifndef PC
-	path_result = Do_Pathfind_psp(self, self.enemy);
-	#else
-	path_result = Do_Pathfind(self, self.enemy);
-	#endif
-
-	//FIXME - further test if this can equate to 0 in FTE..
-	if (path_result >= 1) {
-
-		#ifndef PC
-		self.goaldummy.origin = Get_First_Waypoint(self, self.origin, VEC_HULL_MIN, VEC_HULL_MAX);
-		setorigin(self.goaldummy, self.goaldummy.origin);
-		path_failure = path_result;
-		#else
-		self.goalway = path_result;
-		setorigin(self.goaldummy,waypoints[self.goalway].org);
-		path_failure = self.goalway;
-		#endif
-
-		self.goalentity = self.goaldummy;
+	//Navmesh usage
+	float result = sv_navmesh_pathfind(self,self.enemy);
+	
+	if(result == 1)
+	{
 		self.chase_time = time + 7;
+		setorigin(self.goaldummy,sv_zombie_pathfind_result[self.index].result_path[0]);
+		self.goalentity = self.goaldummy;
 		
-	} else if (path_failure == -1) {
-		self.goalentity = self.enemy;
-		self.chase_time = time + 6;
-	} else {
-		#ifdef PC
-		bprint(PRINT_HIGH, "FirstPathfind Failure\n");
-		#endif
+		//Check if we are extremely close to goaldummy already
+		//if so, move goaldummy to the next point in the path
+		//FIXME: need to verify that this solves the problem
+		if(vlen(self.origin - self.goaldummy.origin) < 2 && sv_zombie_pathfind_result[self.index].result_length > 1)
+		{
+			print("Already at goal 1 after pathfinding, advancing to goal 2\n");
+			//setorigin(self.goaldummy,sv_zombie_pathfind_result[self.index].result_path[1]);
+		}
 	}
+	else
+	{
+		bprint(PRINT_HIGH, "Pathfind failure.\n");
+	}
+	
+	//Waypoint usage
+	// float path_result;
+	// float path_failure= 0;
+
+	// //just to stop any warns.
+	// path_failure = 0;
+
+	// #ifndef PC
+	// path_result = Do_Pathfind_psp(self, self.enemy);
+	// #else
+	// path_result = Do_Pathfind(self, self.enemy);
+	// #endif
+
+	// //FIXME - further test if this can equate to 0 in FTE..
+	// if (path_result >= 1) {
+
+	// 	#ifndef PC
+	// 	self.goaldummy.origin = Get_First_Waypoint(self, self.origin, VEC_HULL_MIN, VEC_HULL_MAX);
+	// 	setorigin(self.goaldummy, self.goaldummy.origin);
+	// 	path_failure = path_result;
+	// 	#else
+	// 	self.goalway = path_result;
+	// 	setorigin(self.goaldummy,waypoints[self.goalway].org);
+	// 	path_failure = self.goalway;
+	// 	#endif
+
+	// 	self.goalentity = self.goaldummy;
+	// 	self.chase_time = time + 7;
+		
+	// } else if (path_failure == -1) {
+	// 	self.goalentity = self.enemy;
+	// 	self.chase_time = time + 6;
+	// } else {
+	// 	#ifdef PC
+	// 	bprint(PRINT_HIGH, "FirstPathfind Failure\n");
+	// 	#endif
+	// }
 }
 
 void() NextPathfindToEnemy {
@@ -600,6 +773,10 @@ void(float dist) Inside_Walk = {
 		return;
 	}
 	
+	
+	PathfindToEnemy();
+
+	/*
 	if(vlen(self.enemy.origin - self.origin) < 600) {//50 feet
 		if(self.goalentity == self.enemy && self.chase_enemy_time > time) {
 			return;
@@ -636,7 +813,7 @@ void(float dist) Inside_Walk = {
 				PathfindToEnemy();
 			}
 		}
-	}
+	}*/
 }
 
 .float droptime;
