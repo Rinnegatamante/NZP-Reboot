@@ -12,8 +12,11 @@
 
 //custom weapon search
 void(string weaponFile) nzd_defineweapon = {
-	float f, p, l, fnum, wepnum, framenum, fsnd;
+	float f, p, l, wepnum;
 	string line;
+	float fnum = 0;
+	float framenum = 0;
+	float fsnd = 0;
 
 	line = strcat(strcat("data/maps/", weaponFile), ".cw");
 	f = fopen(line, FILE_READ);
