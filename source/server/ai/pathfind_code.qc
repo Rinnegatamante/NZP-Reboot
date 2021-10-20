@@ -208,13 +208,12 @@ float Do_Pathfind(entity from, entity to) {
 	float i;
 	float TraceResult;
 
-	float result = 0;
-	float dist = 0;
+	float dist, best_dist, best, best_target;
+
+	dist = 0;
+	best_dist = 100000000;
 
 	#ifndef PSP
-	// Find waypoint closest to "from.origin"
-	float best = -1;
-	float best_dist = 100000000;
 	for (i = 0; i < MAX_WAYPOINTS; i = i + 1) {
 		if (IsActive(i)) {
 			TraceResult = tracemove (from.origin, VEC_HULL_MIN, VEC_HULL_MAX, waypoints[i].org, TRUE ,from);
@@ -228,10 +227,9 @@ float Do_Pathfind(entity from, entity to) {
 			}
 		}
 	}
-
-	// Find waypoint closest to "to.origin"
-	float best_target = -1;
+	dist = 0;
 	best_dist = 100000000;
+
 	for (i = 0; i < MAX_WAYPOINTS; i = i + 1) {
 		if (IsActive(i)) {
 			TraceResult = tracemove (to.origin, VEC_HULL_MIN, VEC_HULL_MAX, waypoints[i].org, TRUE ,to);
@@ -248,12 +246,13 @@ float Do_Pathfind(entity from, entity to) {
 
 	//print("Starting waypoint: ", ftos(best)," Ending waypoint: ", ftos(best_target), "\n");
 
-	if(best != -1 && best_target != -1) {
-		result = Pathfind(from, best, best_target);
-	}
-	#endif
 
-	return result;
+
+
+	return Pathfind(from, best, best_target);
+	#else 
+	return 0;
+	#endif
 }
 
 void CalcDistances() {

@@ -970,8 +970,7 @@ float(float wep, float penetration_times) getWeaponPenetration =
 
 float(float wep) GetWeaponSpread =
 {
-	float Weapon_Spread = 0;
-	float Total_Spread = 0;
+	float Weapon_Spread, Total_Spread;
 
 	if (isCustomWeapon(wep)) {
 		Weapon_Spread = CustomWeapons[wep - 70].spread;
@@ -1335,13 +1334,14 @@ float(float wep, float delaytype) getWeaponDelay =
 
 float GetWeaponWalkSpeed(float perks, float weapontype)
 {
-	float spd = 1;
+	float spd;
 
 	if (isCustomWeapon(weapontype)) {
 		spd = CustomWeapons[weapontype - 70].walkspeed;
 	}
 
 	switch(weapontype) {
+		default: spd = 1;
 		case W_KAR: 
 		case W_357:
 		case W_GEWEHR:
@@ -1367,8 +1367,6 @@ float GetWeaponWalkSpeed(float perks, float weapontype)
 			spd = 0.75;
 		case W_FIW:
 			spd = 0.85;
-		default: 
-			spd = 1;
 	}
 
 	if (perks & P_STAMIN)
@@ -1508,7 +1506,7 @@ vector GetWeaponADSOfs_PSP(float wep) =
 			return [-12320, 7600, 0];
 		case W_TYPE:
 		case W_SAMURAI:
-			return [-400, -200, 0];
+			return [-0400, -200, 0];
 		case W_STG:
 		case W_SPATZ:
 			return [-14534, 8920, 0];
@@ -3531,7 +3529,7 @@ float(float wep) getWeaponRecoilReturn =
 float(float weapon, float stance) CrossHairWeapon =
 {
 
-	float sprd = 0;
+	float sprd;
 
 	if (isCustomWeapon(weapon)) {
 		sprd = CustomWeapons[weapon - 70].crossmin;
@@ -3655,7 +3653,7 @@ float(float weapon, float stance) CrossHairWeapon =
 
 float(float weapon, float stance) CrossHairMaxSpread =
 {
-	float sprd = 0;
+	float sprd;
 
 	if (isCustomWeapon(weapon)) {
 		return CustomWeapons[weapon - 70].crossmax;
@@ -3840,10 +3838,7 @@ float(float weapon, float type) GetLowAmmo = // determine what ammo value you sh
 // PSP Specific!!
 vector(float wep) GetWeaponRecoil =
 {
-	vector guaranteed = '0 0 0';
-	vector kick_change = '0 0 0';
-	vector final_kick = '0 0 0';
-
+	vector guaranteed, kick_change, final_kick;
 	float change_1, change_2, change_3,total_recoil, r, temp1, temp2;
 	switch (wep)
 	{
