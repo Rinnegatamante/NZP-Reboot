@@ -134,9 +134,9 @@ var struct
 	float 	x_position; 				// current x position
 	float 	y_position; 				// current y position
 	float 	x_velocity; 				// how fast the element moves on the x axis
-	float 	y_velocity; 					// how fast the element moves on the y axis
+	float 	y_velocity 					// how fast the element moves on the y axis
 	float 	opacity; 					// the opacity of the text_string as it progresses
-	float 	string_width; 				// the width of text_string
+	float 	string_width 				// the width of text_string
 	string 	text_string; 				// either '+(difference)' or '-(difference)'
 } point_elements[MAX_POINT_ELEMENTS];
 
@@ -220,7 +220,7 @@ void(float width, float height) HUD_Points =
 {
 	local float pointlength = 0, increm = 10, i = 0, pointwidth = 0, x = 0;
 	local float backwidth = 0.8*width;
-	vector text_color = '1 1 1';
+	vector TEXTCOLOR;
 	
 	for (i = 3; i >= 0; i = i - 1)
 	{
@@ -228,17 +228,17 @@ void(float width, float height) HUD_Points =
 			continue;
 			
 		switch(i) {
-			case 1: text_color = TEXT_LIGHTBLUE; break;
-			case 2: text_color = TEXT_ORANGE; break;
-			case 3: text_color = TEXT_GREEN; break;
-			default: text_color = [1, 1, 1]; break;
+			case 1: TEXTCOLOR = TEXT_LIGHTBLUE; break;
+			case 2: TEXTCOLOR = TEXT_ORANGE; break;
+			case 3: TEXTCOLOR = TEXT_GREEN; break;
+			default: TEXTCOLOR = [1, 1, 1]; break;
 		}
 		
 		if ((i+1) == getstatf(STAT_PLAYERNUM)) {
 			pointwidth = stringwidth(ftos(playerpoints[i]), 0, [0.022*width, 0.022*width, 0]);
 			x = ((width + backwidth) - pointwidth)/2;
 			drawpic([backwidth ,0.70*height - (.061*height*i),0], getImage("moneyback.tga"), [0.2*width, 0.07*height, 0], [1,1,1], 1); 
-			drawstring([x, 0.715*height - 0.06*height*i, 0], ftos(playerpoints[i]), [0.022*width, 0.022*width, 0], text_color, 1, 0); 
+			drawstring([x, 0.715*height - 0.06*height*i, 0], ftos(playerpoints[i]), [0.022*width, 0.022*width, 0], TEXTCOLOR, 1, 0); 
 			PointUpdate(backwidth * 1.025, width, height); 
 		}
 		else {
@@ -246,7 +246,7 @@ void(float width, float height) HUD_Points =
 			pointwidth = stringwidth(ftos(playerpoints[i]), 0, [0.022*width*0.8, 0.022*width*0.8, 0]);
 			x = ((width + backwidth) - pointwidth)/2;
 			drawpic([backwidth, 0.70*height - (.071*height*i*0.8),0], getImage("moneyback.tga"), [0.2*width*0.8, 0.07*height*0.8, 0], [1,1,1], 0); 
-			drawstring([x, 0.715*height - 0.07*height*i*0.8, 0], ftos(playerpoints[i]), [0.022*width*0.8, 0.022*width*0.8, 0], text_color, 1, 0); 
+			drawstring([x, 0.715*height - 0.07*height*i*0.8, 0], ftos(playerpoints[i]), [0.022*width*0.8, 0.022*width*0.8, 0], TEXTCOLOR, 1, 0); 
 		}
 	}
 }
@@ -364,7 +364,9 @@ void(float width, float height) HUD_Rounds =
 	}
 	else if (rounds_change == 2)//this is the rounds icon moving from middle
 	{
-		drawpic([round_center_x,round_center_y,0], sb_round[0], [roundwidth,roundheight, 1], [107/255,(1/255),0], 1);
+		float round_center_y_offset, round_center_x_offset;
+				
+		drawpic([round_center_x + round_center_x_offset,round_center_y + round_center_y_offset,0], sb_round[0], [roundwidth,roundheight, 1], [107/255,(1/255),0], 1);
 		
 		round_center_x = round_center_x - (((229/108)*2 - 0.2)*(width/480)/8) * (frametime*250);
 		round_center_y = round_center_y + ((2*(height/272))/8) * (frametime*250);
@@ -801,9 +803,7 @@ void(float width, float height) HUD_Rounds =
 
 void(float width, float height) HUD_Useprint =
 {
-	string usestring = "";
-	string usebutton = "";
-	string usespace = "";
+	string usestring, usebutton, usespace;
 	float print_width, x, button_width;
 		
 	tokenize(findkeysforcommand("+button7"));
