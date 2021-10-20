@@ -37,46 +37,39 @@ void() Respawn =
 	removeZombie();
 };
 
-entity(entity blarg) find_new_enemy =
-{
-	local entity player;
-	local entity closest;
-	local float bestdist;
-	local float dist;
-	bestdist = 10000;
+entity(entity blarg) find_new_enemy {
+	entity ent;
+	float dist;
+	entity closest_ent = world;
+	float best_dist = 1000000;
 
     // FIXME - change to hellhound for old/unreleased Demo map support?
 	if(self.classname == "ai_zombie" || self.classname == "ai_dog") {
-		player = find(world,classname,"monkey");
-		if(player) {
-			return player;
+		ent = find(world,classname,"monkey");
+		if(ent) {
+			closest_ent = ent;
 		}
-		
-		player = find(world,classname,"player");
-		///////////////////////////////
-		if(!player) {
-			return world;
-		}
-		//////////////////////////////
-		while(player) {
-      		if (player.downed == true) {
-        		return world;
-			  }
-        
-			dist = vlen(self.origin - player.origin);
-			if (dist < bestdist) {
-				closest = player;
-				bestdist = dist;
+		else {
+			ent = find(world, classname, "player");
+
+			while(ent) {
+				if(ent.downed == TRUE) {
+					continue;
+				}
+				dist = vlen(ent.origin - self.origin);
+				if(dist < best_dist) {
+					closest_ent = ent;
+					best_dist = dist;
+				}
+				ent = find(ent, classname, "player");
 			}
-			player = find(player,classname,"player");
 		}
-		return closest;
-		
 	}
-	if (self.classname != "wunder")
-		bprint(PRINT_HIGH, "Error: Find_New_Enemy returns world! \n");
-	return world;
-};
+
+	if(closest_ent == world && self.classname != "wunder")
+		bprint(PRINT_HIGH, "Error: find_new_enemy returns world!\n");
+	return closest_ent;
+}
 
 float() avoid_zombies =
 {
