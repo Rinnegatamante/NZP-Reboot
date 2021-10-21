@@ -1305,7 +1305,7 @@ void() findboxspot =
 
 	// Make our current spot a tp_spot
 	self.owner.model = "progs/Misc/teddy.mdl";
-	self.owner.frame = 1;
+	self.owner.frame = 2;
 	setmodel(self.owner, self.owner.model);
 	self.owner.classname = "mystery_box_tp_spot";
 	self.owner.touch = SUB_Null;
@@ -1461,7 +1461,7 @@ void() mystery_box_tp_spot =
 	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
 	
 	if (self.model == "progs/Misc/teddy.mdl") {
-		self.frame = 1;
+		self.frame = 2;
 		self.angles_y -= 90;
 	}
 	
