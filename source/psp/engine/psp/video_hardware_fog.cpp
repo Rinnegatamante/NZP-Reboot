@@ -252,8 +252,7 @@ void Fog_SetupFrame (void)
 		c[0] = f * old_red + (1.0 - f) * r_refdef.fog_red;
 		c[1] = f * old_green + (1.0 - f) * r_refdef.fog_green;
 		c[2] = f * old_blue + (1.0 - f) * r_refdef.fog_blue;
-		c[3] = 1.0;
-        //c[3] = r_skyfog.value;
+        c[3] = r_skyfog.value;
 	}
 	else
 	{
@@ -263,7 +262,7 @@ void Fog_SetupFrame (void)
 		c[1] = r_refdef.fog_green;
 		c[2] = r_refdef.fog_blue;
 		c[3] = 1.0;
-        //c[3] = r_skyfog.value;
+        c[3] = r_skyfog.value;
 	}
 
 	if(e == 0)

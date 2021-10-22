@@ -6,6 +6,7 @@
         "*.gsh": "c",
         "*.h": "c",
         "*.q1": "c",
-        "vector": "c"
+        "vector": "c",
+        "*.inc": "cpp"
     }
 }
