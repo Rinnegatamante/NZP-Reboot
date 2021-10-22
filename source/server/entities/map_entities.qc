@@ -15,6 +15,10 @@ void() func_illusionary =
 	self.movetype = MOVETYPE_NONE;
 	self.solid = SOLID_NOT;
 	setmodel (self, self.model);
+
+	#ifdef PC
+	HalfLife_DoRender();
+	#endif
 	// makestatic (self); // dr_mabuse1981: dont use makestatic, it doesnt show the HL rendermodes then.
 };
 
