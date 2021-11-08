@@ -42,6 +42,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <pspsdk.h>
 
+#define ntohs(x) __builtin_bswap16(x)
+#define ntohl(x) __builtin_bswap32(x)
+#define htons(x) __builtin_bswap16(x)
+#define htonl(x) __builtin_bswap32(x)
+
 #define ADHOC_NET 29
 #define ADHOC_EWOULDBLOCK	0x80410709
 

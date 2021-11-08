@@ -286,3 +286,55 @@ void()  SUB_CalcMoveDone =
 	if (self.think1)
 		self.think1();
 };
+
+
+#ifdef PC
+//
+// HalfLife_DoRender()
+// Adds some support for HL rendermodes to FTE, made by 
+// autonomous1 for 'quakelife'
+//
+
+// Do *some* of the half-life render stuff.
+void () HalfLife_DoRender =
+{
+    local vector osize, omins, omaxs, oabsmin, oabsmax;
+
+    if (self.rendercolor != '0 0 0') {}    // ADDME
+    
+    if (self.rendermode > 0)
+        if (self.renderamt > 0) {
+            self.alpha = self.renderamt/255;
+            if (self.alpha == 0)
+                self.alpha = .01;
+        }
+        else {
+            self.rendermode = 2;
+        }
+        
+        if (self.rendermode == 2) {
+            self.alpha = self.renderamt/255;
+            if (self.alpha == 0) {
+                //self.alpha = 0.01;
+                osize = self.size;
+                omins = self.mins;
+                omaxs = self.maxs;
+                oabsmin = self.absmin;
+                oabsmax = self.absmax;
+                
+                if (self.solid == SOLID_BSP) {
+
+                        self.solid = SOLID_BBOX;
+                }
+                    
+                //setmodel(self, string_null);
+                self.size = osize;
+                self.mins = omins;
+                self.maxs = omaxs;
+                self.absmin = oabsmin;
+                self.absmax = oabsmax;
+                //setorigin(self, self.origin);
+            }
+        }
+};
+#endif

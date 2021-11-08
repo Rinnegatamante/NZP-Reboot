@@ -188,6 +188,7 @@ void() precaches =
 	precache_model ("models/way/way_jump.spr");
 	precache_model ("models/way/way_land.spr");
 	precache_model ("progs/Sprites/sprkle.spr");
+	precache_model ("models/misc/lightning.spr");
 
 
 	

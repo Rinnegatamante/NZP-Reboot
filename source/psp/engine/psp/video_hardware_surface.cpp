@@ -1577,7 +1577,7 @@ void R_DrawWorld (void)
 	//dr_mabuse1981: commented out, this was the one who caused the epic lag
     //DrawFullBrightTextures (cl.worldmodel->surfaces, cl.worldmodel->numsurfaces);
 	//dr_mabuse1981: commented out, this was the one who caused the epic lag
-	if (skybox_name[0])
+	if (strcmp(skybox_name, "") != 0)
 		R_DrawSkyBox();
 }
 

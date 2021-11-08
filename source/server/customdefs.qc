@@ -484,3 +484,10 @@ float sndActivCnt;
 
 // PC Fog force
 .float PC_fog;
+
+// hl stuff
+#ifdef PC
+.float rendermode;
+.float renderamt;
+.vector rendercolor;
+#endif

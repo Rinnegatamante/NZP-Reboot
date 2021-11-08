@@ -447,10 +447,6 @@ void() ClientConnect =
 			localcmd(strcat("fog ", world_fog));
 		} 
 	}
-	
-	if (mapname == "ndu")	{			// the only one we REALLY need to fix is NDU since I don't want to edit the file
-		stuffcmd(self, "sky sky\n");
-	}
 	#endif
 	
 	if(cvar("developer") || player_count > 1) {

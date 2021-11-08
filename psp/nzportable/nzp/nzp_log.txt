@@ -6,3 +6,8 @@ restart
 addmoney 12345
 r_speeds 1
 give 20
+sky ndu
+sky ndu
+sky ndu
+r_fastsky
+r_fastsky 0
