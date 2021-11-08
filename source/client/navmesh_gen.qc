@@ -65,6 +65,10 @@ void cl_navgen_start_phase_mesh_generation();
 void cl_navgen_step_phase_mesh_generation();
 int  cl_navgen_done_phase_mesh_generation();
 void cl_navgen_draw_phase_mesh_generation();
+// Vertices
+struct navgen_vertex;
+// Polygons
+struct navgen_polygon;
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // NAVGEN_PHASE_MESH_DECIMATION
@@ -178,6 +182,14 @@ void() navgen_logic =
 //		deletion
 //		search
 
+
+// Explicit int-modulo function, QC's modulo exhibits strange behavior on integers
+// if we don't explicitly cast them.
+int int_mod(int a, int b) {
+	return ((int)a) % ((int)b);
+}
+
+
 // ------------------------------------------------------------------------------------------------------
 // navgen_cell struct and linked list logic
 // ------------------------------------------------------------------------------------------------------
@@ -202,6 +214,8 @@ struct navgen_cell {
 	int is_zone;
 	// The rectangle that this cell's zone belongs to (only ever set if is_zone==TRUE)
 	navgen_rectangle *zone_rectangle;
+	// Pointer to navgen vertex created at this cell location
+	navgen_vertex *vertex;
 };
 
 navgen_cell *(int x, int y, int z) create_cell {
@@ -217,6 +231,7 @@ navgen_cell *(int x, int y, int z) create_cell {
 	new_cell->next = 0;
 	new_cell->is_zone = FALSE;
 	new_cell->zone_rectangle = 0;
+	new_cell->vertex = 0;
 	return new_cell;
 }
 
@@ -649,6 +664,7 @@ void cl_navgen_step_phase_zone_fill() {
 		// neighborhood. We will call these regions "zones"
 		if(is_cell_fully_connected(cell)) {
 			cell->is_zone = TRUE;
+			cell->zone_rectangle = 0;
 			// Add it to the list of zones
 			add_cell_to_list(cell, &zone_list_root_node);
 		}
@@ -799,30 +815,30 @@ void cl_navgen_start_phase_rectangle_expansion() {
 }
 
 
-// Helper function to iterate through a rectangle's top edge
+// Helper function to iterate through a rectangle's top edge ZONES from TR to TL
 // If *cur == 0, sets cur to the first zone of the rectangle's edge
 // Otherwise, advances *cur to be the next zone of the rectangle's edge
 // Returns FALSE if we're done iterating, TRUE otherwise
 int(navgen_cell **cur, navgen_rectangle *rect) top_edge_iter {
 	// If cur is a null zone, start at corner
 	if(*cur == 0) {
-		*cur = rect->tl_zone;
+		*cur = rect->tr_zone;
 		return TRUE;
 	}
 
 	// If cur is at the same coord as the opposite corner, we're done.
-	if(get_cell_pos(*cur).x >= get_cell_pos(rect->tr_zone).x) {
+	if(get_cell_pos(*cur).x <= get_cell_pos(rect->tl_zone).x) {
 		*cur = 0;
 		return FALSE;
 	}
 
 	// Advance to the next zone in the edge
-	*cur = (*cur)->x_next;
+	*cur = (*cur)->x_prev;
 	return TRUE;
 }
 
 
-// Helper function to iterate through a rectangle's right edge
+// Helper function to iterate through a rectangle's right edge ZONES from BR to TR
 // If *cur == 0, sets cur to the first zone of the rectangle's edge
 // Otherwise, advances *cur to be the next zone of the rectangle's edge
 // Returns FALSE if we're done iterating, TRUE otherwise
@@ -845,7 +861,7 @@ int(navgen_cell **cur, navgen_rectangle *rect) right_edge_iter {
 }
 
 
-// Helper function to iterate through a rectangle's bottom edge
+// Helper function to iterate through a rectangle's bottom edge ZONES from BL to BR
 // If *cur == 0, sets cur to the first zone of the rectangle's edge
 // Otherwise, advances *cur to be the next zone of the rectangle's edge
 // Returns FALSE if we're done iterating, TRUE otherwise
@@ -868,25 +884,25 @@ int(navgen_cell **cur, navgen_rectangle *rect) bottom_edge_iter {
 }
 
 
-// Helper function to iterate through a rectangle's left edge
+// Helper function to iterate through a rectangle's left edge ZONES from TL to BL
 // If *cur == 0, sets cur to the first zone of the rectangle's edge
 // Otherwise, advances *cur to be the next zone of the rectangle's edge
 // Returns FALSE if we're done iterating, TRUE otherwise
 int(navgen_cell **cur, navgen_rectangle *rect) left_edge_iter {
 	// If cur is a null zone, start at corner
 	if(*cur == 0) {
-		*cur = rect->bl_zone;
+		*cur = rect->tl_zone;
 		return TRUE;
 	}
 
 	// If cur is at the same coord as the opposite corner, we're done.
-	if(get_cell_pos(*cur).y >= get_cell_pos(rect->tl_zone).y) {
+	if(get_cell_pos(*cur).y <= get_cell_pos(rect->bl_zone).y) {
 		*cur = 0;
 		return FALSE;
 	}
 
 	// Advance to the next zone in the edge
-	*cur = (*cur)->y_next;
+	*cur = (*cur)->y_prev;
 	return TRUE;
 }
 
@@ -1093,8 +1109,6 @@ void expand_rectangle(navgen_rectangle *rect) {
 
 
 void cl_navgen_step_phase_rectangle_expansion() {
-
-
 	// Create and fully expand up to 5 rectangles this frame.
 	int rectangles_to_process_this_frame = 5;
 
@@ -1126,6 +1140,7 @@ void cl_navgen_step_phase_rectangle_expansion() {
 		rect->br_zone = zone;
 		rect->tr_zone = zone;
 		rect->tl_zone = zone;
+		zone->zone_rectangle = rect;
 
 		add_rectangle_to_list(rect, &rectangle_list_root_node);
 
@@ -1135,7 +1150,8 @@ void cl_navgen_step_phase_rectangle_expansion() {
 }
 int  cl_navgen_done_phase_rectangle_expansion() {
 	// TODO - Return TRUE if zone list is empty.
-	return FALSE;
+	return zone_list_root_node == 0;
+	// return FALSE;
 }
 void cl_navgen_draw_phase_rectangle_expansion() {
 
@@ -1173,17 +1189,530 @@ void cl_navgen_draw_phase_rectangle_expansion() {
 // ===========================================================================
 // NAVGEN_PHASE_MESH_GENERATION
 // ===========================================================================
+// declarations:
+
+struct navgen_vertex {
+	vector pos;
+	// Array of pointers to neighbor vertices
+	// Verts A and B are neighbors means they share an edge.
+	navgen_vertex **neighbors;
+	// Number of neighbors (length of "neighbors" array)
+	int num_neighbors;
+
+	// Array of pointers to polygons that contain this vertex
+	navgen_polygon **polygons;
+	// Number of polygons that contain this vertex (length of "polygons" array)
+	int num_polygons;
+
+	// -- Linked list fields -- 
+	// Next linked list node
+	navgen_vertex *next;
+	// Cached pointer to the list containing this rectangle
+	navgen_vertex **containing_list;
+};
+
+navgen_vertex *create_vertex(vector pos) {
+	navgen_vertex *new_vert = memalloc(sizeof(navgen_vertex));
+	new_vert->pos = pos;
+	new_vert->neighbors = 0;
+	new_vert->num_neighbors = 0;
+	new_vert->polygons = 0;
+	new_vert->num_polygons = 0;
+	new_vert->next = 0;
+	new_vert->containing_list = 0;
+	return new_vert;
+}
+
+void delete_vertex(navgen_vertex *vert) {
+	if(vert->num_neighbors > 0) {
+		// TODO - Iterate through neighbors and remove this vertex from their list?
+		memfree((void*) (vert->neighbors));
+		vert->neighbors = 0;
+		vert->num_neighbors = 0;
+	}
+	if(vert->num_polygons > 0) {
+		memfree((void*) (vert->polygons));
+		vert->polygons = 0;
+		vert->num_polygons = 0;
+	}
+	memfree(vert);
+}
+
+
+void add_vertex_to_list(navgen_vertex *vert, navgen_vertex **list_root) {
+	if(*list_root != 0) {
+		vert->next = *list_root;
+	}
+	*list_root = vert;
+	vert->containing_list = list_root;
+}
+
+
+void remove_vertex_from_list(navgen_vertex *vert, navgen_vertex **list_root) {
+	if(vert->containing_list != list_root)
+		return;
+	
+	if(vert == *list_root) {
+		*list_root = (*list_root)->next;
+		vert->next = 0;
+		vert->containing_list = 0;
+		return;
+	}
+
+	navgen_vertex *prev_vert = *list_root;
+	navgen_vertex *cur_vert = (*list_root)->next;
+
+	while(cur_vert != 0) {
+		if(cur_vert == vert) {
+			prev_vert->next = cur_vert->next;
+			cur_vert->next = 0;
+			vert->containing_list = 0;
+			return;
+		}
+
+		prev_vert = cur_vert;
+		cur_vert = cur_vert->next;
+	}
+}
+
+
+// Checks if 'vert' is in the linked list starting at 'list_root'
+// If it is, returns a pointer to vert,
+// Otherwise, returns 0
+navgen_vertex *vertex_in_list(navgen_vertex *vert, navgen_vertex **list_root) {
+	if(vert->containing_list == list_root) {
+		return vert;
+	}
+	return 0;
+}
+
+
+struct navgen_polygon {
+	// Array containing pointers to vertices
+	navgen_vertex **vertices;
+	// Number of vertices in polygon (length of "vertices" array)
+	int num_vertices;
+
+	// -- Linked list fields --
+	// Next linked list node
+	navgen_polygon *next;
+	// Cached pointer to the list containing this rectangle
+	navgen_polygon **containing_list;
+};
+
+navgen_polygon *create_polygon() {
+	navgen_polygon *new_poly = memalloc(sizeof(navgen_polygon));
+	new_poly->vertices = 0;
+	new_poly->num_vertices = 0;
+	new_poly->next = 0;
+	new_poly->containing_list = 0;
+	return new_poly;
+}
+
+void delete_polygon(navgen_polygon *poly) {
+	if(poly->num_vertices > 0) {
+		memfree((void*) (poly->vertices));
+		poly->vertices = 0;
+		poly->num_vertices = 0;
+	}
+	memfree(poly);
+}
+
+
+void add_polygon_to_list(navgen_polygon *poly, navgen_polygon **list_root) {
+	if(*list_root != 0) {
+		poly->next = *list_root;
+	}
+	*list_root = poly;
+	poly->containing_list = list_root;
+}
+
+
+void remove_polygon_from_list(navgen_polygon *poly, navgen_polygon **list_root) {
+	if(poly->containing_list != list_root)
+		return;
+	
+	if(poly == *list_root) {
+		*list_root = (*list_root)->next;
+		poly->next = 0;
+		poly->containing_list = 0;
+		return;
+	}
+
+	navgen_polygon *prev_poly = *list_root;
+	navgen_polygon *cur_poly = (*list_root)->next;
+
+	while(cur_poly != 0) {
+		if(cur_poly == poly) {
+			prev_poly->next = cur_poly->next;
+			cur_poly->next = 0;
+			poly->containing_list = 0;
+			return;
+		}
+
+		prev_poly = cur_poly;
+		cur_poly = cur_poly->next;
+	}
+}
+
+
+// Checks if 'poly' is in the linked list starting at 'list_root'
+// If it is, returns a pointer to poly,
+// Otherwise, returns 0
+navgen_polygon *polygon_in_list(navgen_polygon *poly, navgen_polygon **list_root) {
+	if(poly->containing_list == list_root) {
+		return poly;
+	}
+	return 0;
+}
+
+
+// ---------- Additional functions that operate on verts / polygons -----------
+
+// Adds vertex a to vertex b's neighbor list
+void add_neighbor_vertex(navgen_vertex *a, navgen_vertex *b) {
+	// Check if vert a is already in b's neighbor list
+	for(int i = 0; i < b->num_neighbors; i++) {
+		if(b->neighbors[i] == a) {
+			return;
+		}
+	}
+
+	// Back up b's previous neighbors array
+	navgen_vertex **b_prev_neighbors = b->neighbors;
+	int b_prev_num_neighbors = b->num_neighbors;
+
+	// Create new arrays
+	b->num_neighbors += 1;
+	b->neighbors = (navgen_vertex**) memalloc(sizeof(navgen_vertex*) * b->num_neighbors);
+
+	// Copy array contents
+	for(int i = 0; i < b_prev_num_neighbors; i++) {
+		b->neighbors[i] = b_prev_neighbors[i];
+	}
+
+	// Insert new entries at the end:
+	b->neighbors[b->num_neighbors-1] = a;
+
+	// Delete old arrays
+	if(b_prev_num_neighbors > 0) {
+		memfree((void*) b_prev_neighbors);
+	}
+}
+
+// Removes vertex a from vertex b's neighbor list
+void remove_neighbor_vertex(navgen_vertex *a, navgen_vertex *b) {
+	// If vert b has no neighbors, return
+	if(b->num_neighbors == 0) {
+		return;
+	}
+
+	// Get the index of a in b's neighbor list
+	int a_idx = -1;
+	for(int i = 0; i < b->num_neighbors; i++) {
+		if(b->neighbors[i] == a) {
+			a_idx = i;
+			break;
+		}
+	}
+	// If vert a wasn't found in b's neighbor list, return
+	if(a_idx == -1) {
+		return;
+	}
+	// Back up b's previous neighbors array
+	navgen_vertex **b_prev_neighbors = b->neighbors;
+	int b_prev_num_neighbors = b->num_neighbors;
+
+	// Create new arrays
+	b->num_neighbors -= 1;
+	b->neighbors = (navgen_vertex**) memalloc(sizeof(navgen_vertex*) * b->num_neighbors);
+
+	// Copy previous neighbors array up to where we found a
+	for(int i = 0; i < a_idx; i++) {
+		b->neighbors[i] = b_prev_neighbors[i];
+	}
+	// Copy previous neighbors array after where a was found
+	for(int i = a_idx + 1; i < b_prev_num_neighbors; i++) {
+		b->neighbors[i - 1] = b_prev_neighbors[i];
+	}
+	// Delete old arrays
+	memfree((void*) b_prev_neighbors);
+}
+
+
+// Adds vertex b to vertex a's neighbor list, if not present
+// Adds vertex a to vertex b's neighbor list, if not present
+void link_neighbor_vertices(navgen_vertex *a, navgen_vertex *b) {
+	add_neighbor_vertex(a,b);
+	add_neighbor_vertex(b,a);
+}
+
+
+// Removes vertex b from vertex a's neighbor list, if present
+// Removes vertex a from vertex b's neighbor list, if present
+void unlink_neighbor_vertices(navgen_vertex *a, navgen_vertex *b) {
+	remove_neighbor_vertex(a,b);
+	remove_neighbor_vertex(b,a);
+}
+
+
+
+void add_polygon_to_vertex(navgen_polygon *poly, navgen_vertex *vert) {
+	// If polygon is already in vertex, stop
+	for(int i = 0; i < vert->num_polygons; i++) {
+		if(vert->polygons[i] == poly) {
+			return;
+		}
+	}
+
+	// Back up vert's previous polygon array
+	navgen_polygon **vert_prev_polygons = vert->polygons;
+	int vert_prev_num_polygons = vert->num_polygons;
+
+	// Create new arrays
+	vert->num_polygons += 1;
+	vert->polygons = (navgen_polygon**) memalloc(sizeof(navgen_polygon*) * vert->num_polygons);
+
+	// Copy array contents
+	for(int i = 0; i < vert_prev_num_polygons; i++) {
+		vert->polygons[i] = vert_prev_polygons[i];
+	}
+
+	// Insert new entries at the end:
+	vert->polygons[vert->num_polygons-1] = poly;
+
+	// Delete old array
+	if(vert_prev_num_polygons > 0) {
+		memfree((void*) vert_prev_polygons);
+	}
+}
+
+
+void add_vertex_to_polygon(navgen_vertex *vert, navgen_polygon *poly) {
+	// If vertex is already in polygon, stop
+	for(int i = 0; i < poly->num_vertices; i++) {
+		if(poly->vertices[i] == vert) {
+			return;
+		}
+	}
+
+	// Back up poly's previous vertices array
+	navgen_vertex **poly_prev_vertices = poly->vertices;
+	int poly_prev_num_vertices = poly->num_vertices;
+
+	// Create new arrays
+	poly->num_vertices += 1;
+	poly->vertices = (navgen_vertex**) memalloc(sizeof(navgen_vertex*) * poly->num_vertices);
+
+	// Copy array contents
+	for(int i = 0; i < poly_prev_num_vertices; i++) {
+		poly->vertices[i] = poly_prev_vertices[i];
+	}
+
+	// Insert new entries at the end:
+	poly->vertices[poly->num_vertices-1] = vert;
+
+	// Delete old array
+	if(poly_prev_num_vertices > 0) {
+		memfree((void*) poly_prev_vertices);
+	}
+}
+
+
+navgen_vertex *navgen_vertex_list_root_node;
+navgen_polygon *navgen_polygon_list_root_node;
+
+
 void cl_navgen_start_phase_mesh_generation() {
+	// Empty the vertices list
+	navgen_vertex *temp_vert = navgen_vertex_list_root_node;
+	navgen_vertex *temp_vert_next;
 
+	while(temp_vert != 0) {
+		temp_vert_next = temp_vert->next;
+		remove_vertex_from_list(temp_vert, &navgen_vertex_list_root_node);
+		delete_vertex(temp_vert);
+		temp_vert = temp_vert_next;
+	}
+
+	// Empty the polygon list
+	navgen_polygon *temp_poly = navgen_polygon_list_root_node;
+	navgen_polygon *temp_poly_next;
+
+	while(temp_poly != 0) {
+		temp_poly_next = temp_poly->next;
+		remove_polygon_from_list(temp_poly, &navgen_polygon_list_root_node);
+		delete_polygon(temp_poly);
+		temp_poly = temp_poly_next;
+	}
+
+	// Loop through all rectangles, mark 4 rectangle corners as vertices, and create vertices at the 4 corners
+	navgen_rectangle *rect = rectangle_list_root_node;
+
+	while(rect != 0) {
+		// By definition of how rectangles are constructed, corner cells always exist.
+		navgen_cell *bl_cell = rect->bl_zone;
+		navgen_cell *br_cell = (rect->br_zone)->x_next;
+		navgen_cell *tr_cell = ((rect->tr_zone)->x_next)->y_next;
+		navgen_cell *tl_cell = (rect->tl_zone)->y_next;
+
+		// Mark all corners as being verts and create vertex objects
+		if(bl_cell->vertex == 0) {
+			bl_cell->vertex = create_vertex(get_cell_pos(bl_cell));
+			add_vertex_to_list(bl_cell->vertex, &navgen_vertex_list_root_node);
+		}
+		if(br_cell->vertex == 0) {
+			br_cell->vertex = create_vertex(get_cell_pos(br_cell));
+			add_vertex_to_list(br_cell->vertex, &navgen_vertex_list_root_node);
+		}
+		if(tr_cell->vertex == 0) {
+			tr_cell->vertex = create_vertex(get_cell_pos(tr_cell));
+			add_vertex_to_list(tr_cell->vertex, &navgen_vertex_list_root_node);
+		}
+		if(tl_cell->vertex == 0) {
+			tl_cell->vertex = create_vertex(get_cell_pos(tl_cell));
+			add_vertex_to_list(tl_cell->vertex, &navgen_vertex_list_root_node);
+		}
+		rect = rect->next;
+	}
 }
+
+
 void cl_navgen_step_phase_mesh_generation() {
+	// Create polygons for up to this many rectangles this frame
+	int rectangles_to_process_this_frame = 5;
 
+	navgen_cell *zone;
+	navgen_cell *cell;
+	navgen_rectangle *rect;
+
+	// Process all rectangles in the list: rectangle_list_root_node
+	while(rectangle_list_root_node != 0) {
+		rectangles_to_process_this_frame -= 1;
+		if(rectangles_to_process_this_frame < 0) {
+			return;
+		}
+		rect = rectangle_list_root_node;
+		remove_rectangle_from_list(rect, &rectangle_list_root_node);
+		// Create a polygon for this rectangle:
+		navgen_polygon *poly = create_polygon();
+
+		// Walk around the rectangle edge cells (BL -> BR -> TR -> TL -> BL),  
+		// add any cells that are vertices to the polygon.
+		for(zone = 0; bottom_edge_iter(&zone, rect);) {
+			cell = zone;
+			if(cell->vertex != 0) {
+				add_polygon_to_vertex(poly, cell->vertex);
+				add_vertex_to_polygon(cell->vertex, poly);
+			}
+		}
+		for(zone = 0; right_edge_iter(&zone, rect);) {
+			cell = zone->x_next;
+			if(cell->vertex != 0) {
+				add_polygon_to_vertex(poly, cell->vertex);
+				add_vertex_to_polygon(cell->vertex, poly);
+			}
+		}
+		for(zone = 0; top_edge_iter(&zone, rect);) {
+			cell = (zone->x_next)->y_next;
+			if(cell->vertex != 0) {
+				add_polygon_to_vertex(poly, cell->vertex);
+				add_vertex_to_polygon(cell->vertex, poly);
+			}
+		}
+		for(zone = 0; left_edge_iter(&zone, rect);) {
+			cell = zone->y_next;
+			if(cell->vertex != 0) {
+				add_polygon_to_vertex(poly, cell->vertex);
+				add_vertex_to_polygon(cell->vertex, poly);
+			}
+		}
+
+		// Loop around the polygon verts, marking them as neighbors:
+		for(int vert_idx = 0; vert_idx < poly->num_vertices; vert_idx++) {
+			int next_vert_idx = int_mod(vert_idx + 1, poly->num_vertices);
+			link_neighbor_vertices(poly->vertices[vert_idx], poly->vertices[next_vert_idx]);
+		}
+
+		// Add polygon to our list
+		add_polygon_to_list(poly, &navgen_polygon_list_root_node);
+
+		// We're done with this rectangle, can now delete it.
+		delete_rectangle(rect);
+	}
 }
-int  cl_navgen_done_phase_mesh_generation() {
-	return 1;
+
+int cl_navgen_done_phase_mesh_generation() {
+	return FALSE;
+	// return rectangle_list_root_node == 0;
 }
+
+void cl_navgen_draw_mesh(int draw_vertices, int draw_vertex_edges, int draw_polygons, int draw_polygon_edges) {
+	vector vert_color = [0,0,1];
+	vector poly_color = [0.2,0.2,0.8];
+	float vert_alpha = 0.4;
+	float poly_alpha = 0.2;
+
+	navgen_polygon *poly;
+	navgen_vertex *vert;
+
+	if(draw_polygons == TRUE) {
+		R_BeginPolygon("debug/wireframe",0);
+		poly = navgen_polygon_list_root_node;
+		while(poly != 0) { 
+			// TODO - Assumption: verts are ordered CCW:
+			if(poly->num_vertices == 0) {
+				poly = poly->next;
+				continue;
+			}
+			// Draw the polygon
+			R_BeginPolygon("debug/solid_nocull",0);
+			for(int vert_idx = 0; vert_idx< poly->num_vertices; vert_idx++) {
+				R_PolygonVertex((poly->vertices[vert_idx])->pos, [0,0,0], poly_color, poly_alpha);
+			}
+			R_EndPolygon();
+			poly = poly->next;
+		}
+	}
+
+	if(draw_polygon_edges == TRUE) {
+		R_BeginPolygon("debug/wireframe",0);
+		poly = navgen_polygon_list_root_node;
+		while(poly != 0) { 
+			// TODO - Assumption: verts are ordered CCW:
+			// Draw the edges
+			for(int vert_idx = 0; vert_idx < poly->num_vertices; vert_idx++) {
+				int next_vert_idx = int_mod(vert_idx + 1, poly->num_vertices);
+				cl_navmesh_draw_edge((poly->vertices[vert_idx])->pos, (poly->vertices[next_vert_idx])->pos);
+			}
+			poly = poly->next;
+		}
+	}
+
+	if(draw_vertices == TRUE) {
+		R_BeginPolygon("debug/wireframe",0);
+		vert = navgen_vertex_list_root_node;
+		while(vert != 0) {
+			cl_navmesh_draw_vert(vert->pos,vert_color,0.4 );
+			vert = vert->next;
+		}
+	}
+
+	if(draw_vertex_edges == TRUE) {
+		R_BeginPolygon("debug/wireframe",0);
+		vert = navgen_vertex_list_root_node;
+		while(vert != 0) {
+			for(int i = 0; i < vert->num_neighbors; i++) {
+				cl_navmesh_draw_edge(vert->pos, (vert->neighbors[i])->pos);
+}
+			vert = vert->next;
+}
+	}
+}
+
+
 void cl_navgen_draw_phase_mesh_generation() {
-
+	cl_navgen_draw_mesh(TRUE, TRUE, TRUE, FALSE);
 }
 // ===========================================================================
 // ===========================================================================
