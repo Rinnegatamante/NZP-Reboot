@@ -2,6 +2,10 @@ float() spawn_a_dogA;
 
 void() Spawn_Enemy = 
 {
+	// temporarily prevent spawning
+	if (nuke_powerup_spawndelay > time)
+		return;
+
 	if (roundtype == 1)
 	{
 		if (spawn_a_zombieA())

@@ -69,42 +69,78 @@ void() maxammo =
 	}
 }
 
-
-void() nuke =
+void() nuke_finalize =
 {
-	local entity oldself;
-	local entity who;
-	local float killcount;
-	oldself = self;
-	
-	killcount = 0;
-	
-	who = find(world,classname,"ai_zombie");
-	while(who != world)
-	{
-		if(who.health)
-		{
-			self = who;
-			self.th_die();
-			self = oldself;
-			killcount++;
-		}
-		
-		who = find(who,classname,"ai_zombie");
-	}
+	entity players;
 
+	// give 'The F Bomb'
 	#ifndef NX
-	if (killcount == 1) {
+	if (self.kills == 1) {
 		GiveAchievement(4);
 	}
 	#endif
 	
-	who = find(world,classname,"player");
-	while(who)
+	// award points
+	players = find(world,classname,"player");
+	while(players)
 	{
-		addmoney(who, 400, 1);
-		who = find(who,classname,"player");
+		addmoney(players, 400*nuke_powerups_activated, 1);
+		players = find(players,classname,"player");
 	}
+
+	nuke_powerup_active = false;
+}
+
+void() do_nuke_kill =
+{
+	// back up ourselves
+	entity oldself;
+	oldself = self;
+
+	// switch to goaldummy, is goaldummy world?
+	if (self.goaldummy == world) {
+		nuke_finalize();
+		remove(self);
+		return;
+	} else {
+		self = self.goaldummy;
+	}
+
+	// kill a target
+	self.th_die();
+
+	// restore self
+	self = oldself;
+
+	// increment kills
+	self.kills++;
+
+	// find new target
+	self.goaldummy = findfloat(self.goaldummy, iszomb, 1);
+
+	self.nextthink = (rint((random() * 6) + 1)/10) + time; // random number from 0.1 to 0.7
+}
+
+void() nuke =
+{
+	// if there's already one active, just increment the point multiplier
+	if (nuke_powerup_active == true) {
+		nuke_powerups_activated++;
+		return;
+	}
+
+	// mark nuke as being active, to prevent zombie damage and spawning.
+	nuke_powerup_active = true;
+	nuke_powerup_spawndelay = time + 3;
+	nuke_powerups_activated = 1;
+
+	// create our watcher entity
+	entity nuke_watcher;
+	nuke_watcher = spawn();
+	nuke_watcher.goaldummy = findfloat(world, iszomb, 1);
+
+	nuke_watcher.think = do_nuke_kill;
+	nuke_watcher.nextthink = (rint((random() * 6) + 1)/10) + time; // random number from 0.1 to 0.7
 }
 
 void() carpenter =

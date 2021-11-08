@@ -339,6 +339,9 @@ float x2_blink;
 float total_windows_down;
 float total_powerup_points;
 float powerup_activate;
+float nuke_powerup_active;
+float nuke_powerups_activated;
+float nuke_powerup_spawndelay;
 
 //rounds
 float roundinit;

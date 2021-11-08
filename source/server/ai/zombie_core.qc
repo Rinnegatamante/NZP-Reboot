@@ -943,6 +943,10 @@ void() removeZombie =
 	setmodel(self.larm,"");
 	setmodel(self.rarm,"");
 	setmodel(self.head,"");
+
+	remove(self.larm);
+	remove(self.rarm);
+	remove(self.head);
 	
 	#ifndef PC
 	updateLimb (self, 0, world);
@@ -968,6 +972,7 @@ void() removeZombie =
 	self.flags = 0;
 	self.crawling = 0;
 	self.bleedingtime = 0;
+	self.iszomb = 0;
 	self.owner = world;
 
 	self.spawnflags = 0;
@@ -1006,7 +1011,7 @@ void()	zombie_death7		=[	$death7,		zombie_death8	] 	{self.frame = 129;};
 void()	zombie_death8		=[	$death8,		zombie_death9	] 	{self.frame = 130;};
 void()	zombie_death9		=[	$death9,		zombie_death10	] 	{self.frame = 131;};
 void()	zombie_death10		=[	$death10,		zombie_death11	] 	{self.frame = 132;zombie_footstep();};
-void()	zombie_death11		=[	$death11,		SUB_Null	] 	{self.nextthink = time + 3; self.think = removeZombie;  self.frame = 133;};
+void()	zombie_death11		=[	$death11,		SUB_Null	] 	{self.iszomb = 0; self.nextthink = time + 3; self.think = removeZombie;  self.frame = 133;};
 
 //////////////////////////////////////////////////////////////////////////////////// ZOMBIE DEATH 2
 //134-138
@@ -1016,7 +1021,7 @@ void()	zombie_deathB1		=[	$deathB1,		zombie_deathB2	] 	{self.frame = 134;};
 void()	zombie_deathB2		=[	$deathB2,		zombie_deathB3	] 	{self.frame = 135;};
 void()	zombie_deathB3		=[	$deathB3,		zombie_deathB4	] 	{self.frame = 136;};
 void()	zombie_deathB4		=[	$deathB4,		zombie_deathB5	] 	{self.frame = 137;zombie_footstep();};
-void()	zombie_deathB5		=[	$deathB5,		SUB_Null		] 	{self.nextthink = time + 3; self.think = removeZombie; self.frame = 138;};
+void()	zombie_deathB5		=[	$deathB5,		SUB_Null		] 	{self.iszomb = 0; self.nextthink = time + 3; self.think = removeZombie; self.frame = 138;};
 
 
 //////////////////////////////////////////////////////////////////////////////////// ZOMBIE DEATH 3
@@ -1033,7 +1038,7 @@ void()	zombie_deathC6		=[	$deathC6,		zombie_deathC7	] 	{self.frame = 144;};
 void()	zombie_deathC7		=[	$deathC7,		zombie_deathC8	] 	{self.frame = 145;};
 void()	zombie_deathC8		=[	$deathC8,		zombie_deathC9	] 	{self.frame = 146;zombie_footstep();};
 void()	zombie_deathC9		=[	$deathC9,		zombie_deathC10	] 	{self.frame = 147;};
-void()	zombie_deathC10		=[	$deathC10,		SUB_Null		] 	{self.nextthink = time + 3; self.think = removeZombie; self.frame = 148;};
+void()	zombie_deathC10		=[	$deathC10,		SUB_Null		] 	{self.iszomb = 0; self.nextthink = time + 3; self.think = removeZombie; self.frame = 148;};
 
 void() Zombie_Death =
 {
@@ -1079,7 +1084,7 @@ void() Zombie_Death =
 		self.s_time = 0;
 	}
 	
-	//Spawn_Powerup(self.origin, 0);
+	Spawn_Powerup(self.origin, 4);
 	if(self.outside == FALSE)
 	{
 		if (totalpowerups < 4)
