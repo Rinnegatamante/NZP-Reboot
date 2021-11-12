@@ -2073,12 +2073,30 @@ void M_Graphics_Settings_Draw (void)
 	else
 		Draw_ColoredStringScale(300, y + 160, "Enabled", 1, 1, 1, 1, 1.5f);
 
+#ifdef VITA
+	// Back
+	if (gsettings_cursor == 8)
+		Draw_ColoredStringScale(10, y + 250, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 250, "Back", 1, 1, 1, 1, 1.5f);
+	
+	// Descriptions
+	switch(gsettings_cursor) {
+		case 0: Draw_ColoredStringScale(10, y + 225, "Toggle Framerate Overlay.", 1, 1, 1, 1, 1.5f); break;
+		case 1: Draw_ColoredStringScale(10, y + 225, "Increase or Decrease Max Frames per Second.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 225, "Adjust Game Field of View.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 225, "Increase or Decrease Game Brightness.", 1, 1, 1, 1, 1.5f); break;
+		case 6: Draw_ColoredStringScale(10, y + 225, "Toggle all non-realtime lights.", 1, 1, 1, 1, 1.5f); break;
+		case 7: Draw_ColoredStringScale(10, y + 225, "Toggle texture filtering.", 1, 1, 1, 1, 1.5f); break;
+		default: break;
+	}
+#else
 	// Back
 	if (gsettings_cursor == 8)
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
-
+	
 	// Descriptions
 	switch(gsettings_cursor) {
 		case 0: Draw_ColoredStringScale(10, y + 305, "Toggle Framerate Overlay.", 1, 1, 1, 1, 1.5f); break;
@@ -2089,6 +2107,7 @@ void M_Graphics_Settings_Draw (void)
 		case 7: Draw_ColoredStringScale(10, y + 305, "Toggle texture filtering.", 1, 1, 1, 1, 1.5f); break;
 		default: break;
 	}
+#endif
 }
 
 void M_Graphics_Settings_Key (int key)
@@ -2232,7 +2251,23 @@ void M_Control_Settings_Draw (void)
 		Draw_ColoredStringScale(300, y + 115, "Disabled", 1, 1, 1, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(300, y + 115, "Enabled", 1, 1, 1, 1, 1.5f);
+#ifdef VITA
+	// Back
+	if (csettings_cursor == 5)
+		Draw_ColoredStringScale(10, y + 250, "Back", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 250, "Back", 1, 1, 1, 1, 1.5f);
 
+
+	// Descriptions
+	switch(csettings_cursor) {
+		case 0: Draw_ColoredStringScale(10, y + 225, "Toggle Crosshair in-game.", 1, 1, 1, 1, 1.5f); break;
+		case 1: Draw_ColoredStringScale(10, y + 225, "Toggle Assisted Aim to improve Targeting.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 225, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 225, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
+		case 4: Draw_ColoredStringScale(10, y + 225, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
+	}
+#else
 	// Back
 	if (csettings_cursor == 5)
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
@@ -2247,7 +2282,8 @@ void M_Control_Settings_Draw (void)
 		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
 		case 3: Draw_ColoredStringScale(10, y + 305, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
 		case 4: Draw_ColoredStringScale(10, y + 305, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
-	}
+	}	
+#endif
 }
 
 void M_Control_Settings_Key (int key)
@@ -2417,8 +2453,11 @@ void M_Keys_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Header
+#ifdef VITA
+	Draw_ColoredStringScale(10, y + 5, "CONTROLS", 1, 1, 1, 1, 3.0f);
+#else
 	Draw_ColoredStringScale(10, y + 10, "CONTROLS", 1, 1, 1, 1, 3.0f);
-
+#endif
 	if (bind_grab) {
 		Draw_ColoredStringScale(86, y + 305, "Press a key or button for this action", 1, 1, 1, 1, 1.5f);
 	} else {
@@ -2428,8 +2467,11 @@ void M_Keys_Draw (void)
 	}
 
 	for(int i = 0; i < (int)NUMCOMMANDS; i++) {
+#ifdef VITA
+		int y_offset = y + (35 + 15 * i);
+#else
 		int y_offset = y + (55 + 15 * i);
-
+#endif
 		if (i == keys_cursor) {
 			Draw_ColoredStringScale(10, y_offset, bindnames[i][1], 1, 0, 0, 1, 1.5f);
 		} else {

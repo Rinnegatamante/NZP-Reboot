@@ -167,7 +167,7 @@ typedef struct client_s
 
 // entity effects
 
-#define	EF_BRIGHTFIELD			1
+#define	EF_BRIGHTFIELD			256
 #define	EF_MUZZLEFLASH 			2
 #define	EF_BRIGHTLIGHT 			4
 #define	EF_DIMLIGHT 			8

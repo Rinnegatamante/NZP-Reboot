@@ -1841,24 +1841,30 @@ byte *COM_LoadMallocFile_TextMode_OSPath (const char *path, long *len_out)
 		return NULL;
 	
 	len = COM_filelength (f);
-	if (len < 0)
+	if (len < 0) {
+		fclose(f);
 		return NULL;
+	}
 	
 	data = (byte *) malloc (len + 1);
-	if (data == NULL)
+	if (data == NULL) {
+		fclose(f);
 		return NULL;
+	}
 
 	// (actuallen < len) if CRLF to LF translation was performed
 	actuallen = fread (data, 1, len, f);
 	if (ferror(f))
 	{
 		free (data);
+		fclose(f);
 		return NULL;
 	}
 	data[actuallen] = '\0';
 	
 	if (len_out != NULL)
 		*len_out = actuallen;
+	fclose(f);
 	return data;
 }
 

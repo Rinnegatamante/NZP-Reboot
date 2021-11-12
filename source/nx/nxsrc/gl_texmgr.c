@@ -115,7 +115,9 @@ static void TexMgr_SetFilterModes (gltexture_t *glt)
 	{
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[glmode_idx].magfilter);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[glmode_idx].minfilter);
+#ifndef VITA
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
+#endif
 	}
 	else
 	{
@@ -195,7 +197,9 @@ static void TexMgr_Anisotropy_f (cvar_t *var)
 			GL_Bind (glt);
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[glmode_idx].magfilter);
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[glmode_idx].minfilter);
+#ifndef VITA
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
+#endif
 		    }
 		}
 	}
@@ -251,18 +255,23 @@ static void TexMgr_Imagedump_f (void)
 		q_snprintf(tganame, sizeof(tganame), "imagedump/%s.tga", tempname);
 
 		GL_Bind (glt);
+#ifndef VITA
 		glPixelStorei (GL_PACK_ALIGNMENT, 1);/* for widths that aren't a multiple of 4 */
-
+#endif
 		if (glt->flags & TEXPREF_ALPHA)
 		{
 			buffer = (byte *) malloc(glt->width*glt->height*4);
+#ifndef VITA
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+#endif
 			Image_WriteTGA (tganame, buffer, glt->width, glt->height, 32, true);
 		}
 		else
 		{
 			buffer = (byte *) malloc(glt->width*glt->height*3);
+#ifndef VITA
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+#endif
 			Image_WriteTGA (tganame, buffer, glt->width, glt->height, 24, true);
 		}
 		free (buffer);
@@ -1121,10 +1130,12 @@ static void TexMgr_LoadImage32 (gltexture_t *glt, unsigned *data)
 	GL_Bind (glt);
 	internalformat = (glt->flags & TEXPREF_ALPHA) ? gl_alpha_format : gl_solid_format;
 	glTexImage2D (GL_TEXTURE_2D, 0, internalformat, glt->width, glt->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
 	// upload mipmaps
 	if (glt->flags & TEXPREF_MIPMAP)
 	{
+#ifdef VITA
+		glGenerateMipmap(GL_TEXTURE_2D);
+#else
 		mipwidth = glt->width;
 		mipheight = glt->height;
 
@@ -1142,6 +1153,7 @@ static void TexMgr_LoadImage32 (gltexture_t *glt, unsigned *data)
 			}
 			glTexImage2D (GL_TEXTURE_2D, miplevel, internalformat, mipwidth, mipheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
+#endif
 	}
 
 	// set filter modes
@@ -1534,11 +1546,14 @@ GL_SelectTexture -- johnfitz -- rewritten
 */
 void GL_SelectTexture (GLenum target)
 {
+#ifndef VITA
 	if (target == currenttarget)
 		return;
-		
+#endif
 	GL_SelectTextureFunc(target);
+#ifndef VITA
 	currenttarget = target;
+#endif
 }
 
 /*
@@ -1578,7 +1593,7 @@ GL_Bind -- johnfitz -- heavy revision
 */
 void GL_Bind (gltexture_t *texture)
 {
-
+#ifndef VITA
 	if (!texture) {
 		texture = nulltexture;
 		Con_Printf("NULL TEXTURE HERE LOL\n");
@@ -1587,9 +1602,12 @@ void GL_Bind (gltexture_t *texture)
 	if (texture->texnum != currenttexture[currenttarget - GL_TEXTURE0_ARB])
 	{
 		currenttexture[currenttarget - GL_TEXTURE0_ARB] = texture->texnum;
+#endif
 		glBindTexture (GL_TEXTURE_2D, texture->texnum);
+#ifndef VITA
 		texture->visframe = r_framecount;
 	}
+#endif
 }
 
 /*
@@ -1603,11 +1621,11 @@ from our per-TMU cached texture binding table.
 static void GL_DeleteTexture (gltexture_t *texture)
 {
 	glDeleteTextures (1, &texture->texnum);
-
+#ifndef VITA
 	if (texture->texnum == currenttexture[0]) currenttexture[0] = GL_UNUSED_TEXTURE;
 	if (texture->texnum == currenttexture[1]) currenttexture[1] = GL_UNUSED_TEXTURE;
 	if (texture->texnum == currenttexture[2]) currenttexture[2] = GL_UNUSED_TEXTURE;
-
+#endif
 	texture->texnum = 0;
 }
 
@@ -1622,9 +1640,11 @@ Call this after changing the binding outside of GL_Bind.
 */
 void GL_ClearBindings(void)
 {
+#ifndef VITA
 	int i;
 	for (i = 0; i < 3; i++)
 	{
 		currenttexture[i] = GL_UNUSED_TEXTURE;
 	}
+#endif
 }

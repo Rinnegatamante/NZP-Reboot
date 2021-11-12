@@ -82,6 +82,10 @@ static int buttonremap[] =
 /* total accumulated mouse movement since last frame */
 static int	total_dx, total_dy = 0;
 
+#ifdef VITA
+static void IN_BeginIgnoringMouseEvents(void){}
+static void IN_EndIgnoringMouseEvents(void){}
+#else
 static int SDLCALL IN_FilterMouseEvents (const SDL_Event *event)
 {
 	switch (event->type)
@@ -129,6 +133,7 @@ static void IN_EndIgnoringMouseEvents(void)
 		SDL_SetEventFilter(NULL);
 #endif
 }
+#endif
 
 #ifdef MACOS_X_ACCELERATION_HACK
 static cvar_t in_disablemacosxmouseaccel = {"in_disablemacosxmouseaccel", "1", CVAR_ARCHIVE};
@@ -1193,3 +1198,55 @@ void IN_SendKeyEvents (void)
 	}
 }
 
+#ifdef VITA
+#include <vitasdk.h>
+extern void ascii2utf(uint16_t* dst, char* src);
+extern void utf2ascii(char* dst, uint16_t* src);
+extern uint16_t title[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
+extern uint16_t initial_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
+extern uint16_t input_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
+extern char title_keyboard[256];
+
+qboolean IN_SwitchKeyboard(char *out, int out_len)
+{
+	Key_ClearStates();
+
+	memset(input_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1) << 1);
+	memset(initial_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH) << 1);
+	sprintf(title_keyboard, "Insert Text");
+	ascii2utf(title, title_keyboard);
+	SceImeDialogParam param;
+	sceImeDialogParamInit(&param);
+	param.supportedLanguages = 0x0001FFFF;
+	param.languagesForced = SCE_TRUE;
+	param.type = SCE_IME_TYPE_BASIC_LATIN;
+	param.title = title;
+	param.maxTextLength = out_len;
+	if (out) {
+		ascii2utf(initial_text, out);
+		ascii2utf(input_text, out);
+	}
+	param.initialText = initial_text;
+	param.inputTextBuffer = input_text;
+	sceImeDialogInit(&param);
+
+	while (sceImeDialogGetStatus() != 2) {
+		vglSwapBuffers(GL_TRUE);
+	}
+	SceCommonDialogStatus status = sceImeDialogGetStatus();
+	SceImeDialogResult result;
+	memset(&result, 0, sizeof(SceImeDialogResult));
+	sceImeDialogGetResult(&result);
+	if (result.button == SCE_IME_DIALOG_BUTTON_ENTER)
+		utf2ascii(out, input_text);
+	else
+		out[0] = 0;
+	sceImeDialogTerm();
+
+	// gotta do this or events get stuck
+	SDL_PumpEvents();
+	SDL_FlushEvents(SDL_KEYDOWN, SDL_CONTROLLERBUTTONUP);
+
+	return true;
+}
+#endif

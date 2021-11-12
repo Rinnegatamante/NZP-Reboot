@@ -87,7 +87,12 @@ static void Sys_InitSDL (void)
 	atexit(Sys_AtExit);
 }
 
+#ifdef VITA
+#include <vitasdk.h>
+#define DEFAULT_MEMORY (128 * 1024 * 1024) // ericw -- was 72MB (64-bit) / 64MB (32-bit)
+#else
 #define DEFAULT_MEMORY (256 * 1024 * 1024) // ericw -- was 72MB (64-bit) / 64MB (32-bit)
+#endif
 
 static quakeparms_t	parms;
 
@@ -97,23 +102,55 @@ static quakeparms_t	parms;
 #define main SDL_main
 #endif
 
+#ifdef VITA
+uint16_t title[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
+uint16_t initial_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
+uint16_t input_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
+char title_keyboard[256];
+
+void ascii2utf(uint16_t* dst, char* src){
+	if(!src || !dst)return;
+	while(*src)*(dst++)=(*src++);
+	*dst=0x00;
+}
+
+void utf2ascii(char* dst, uint16_t* src){
+	if(!src || !dst)return;
+	while(*src)*(dst++)=(*(src++))&0xFF;
+	*dst=0x00;
+}
+
+int nzp_main (unsigned int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
+#ifdef VITA
+	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_CAPTURE);
+	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
+#endif
 	int		t;
 	double		time, oldtime, newtime;
 
 	host_parms = &parms;
+#ifdef VITA
+	parms.basedir = "ux0:data/nzp";
+#else
 	parms.basedir = ".";
-
+#endif
 	parms.argc = argc;
 	parms.argv = argv;
 
 	parms.errstate = 0;
 
 	COM_InitArgv(parms.argc, parms.argv);
-
+#ifndef VITA
 	isDedicated = (COM_CheckParm("-dedicated") != 0);
-
+#endif
 	Sys_InitSDL ();
 
 	Sys_Init();
@@ -163,6 +200,7 @@ int main(int argc, char *argv[])
 	while (1)
 	{
 		/* If we have no input focus at all, sleep a bit */
+#ifndef VITA
 		if (!VID_HasMouseOrInputFocus() || cl.paused)
 		{
 			SDL_Delay(16);
@@ -174,6 +212,7 @@ int main(int argc, char *argv[])
 			SDL_Delay(32);
 		}
 		else
+#endif
 		{
 			scr_skipupdate = 0;
 		}
@@ -181,13 +220,25 @@ int main(int argc, char *argv[])
 		time = newtime - oldtime;
 
 		Host_Frame (time);
-
+#ifndef VITA
 		if (time < sys_throttle.value && !cls.timedemo)
 			SDL_Delay(1);
-
+#endif
 		oldtime = newtime;
 	}
 
 	return 0;
 }
 
+#ifdef VITA
+int main(int argc, char **argv)
+{
+	// We need a bigger stack to run NZP, so we create a new thread with a proper stack size
+	SceUID main_thread = sceKernelCreateThread("NZP", nzp_main, 0x40, 0x800000, 0, 0, NULL);
+	if (main_thread >= 0) {
+		sceKernelStartThread(main_thread, 0, NULL);
+		sceKernelWaitThreadEnd(main_thread, NULL, NULL);
+	}
+	return 0;
+}
+#endif

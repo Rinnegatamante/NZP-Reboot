@@ -111,10 +111,9 @@ typedef struct
 	gltexture_t *gltexture;
 	float		sl, tl, sh, th;
 } glpic_t;
-int		gl_lightmap_format = GL_LUMINANCE;
+int		gl_lightmap_format = GL_RGBA;
 int		gl_solid_format = 3;
 int		gl_alpha_format = 4;
-
 int		gl_filter_min = GL_LINEAR;
 int		gl_filter_max = GL_LINEAR;
 int		texels;
@@ -597,7 +596,7 @@ void Draw_ColoredStringScale (int x, int y, const char *str, float r, float g, f
 	glEnd ();
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glEnable (GL_ALPHA_TEST);
+	glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 	glColor4f (1,1,1,1);
 }
@@ -634,7 +633,7 @@ void Draw_ColoredString (int x, int y, const char *str, float r, float g, float 
 	glEnd ();
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glEnable (GL_ALPHA_TEST);
+	glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 	glColor4f (1,1,1,1);
 
@@ -675,7 +674,7 @@ void Draw_ColorPic (int x, int y, qpic_t *pic, float r, float g, float b, float 
 	if (alpha <= 1.0)
 	{
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glEnable (GL_ALPHA_TEST);
+		glEnable(GL_ALPHA_TEST);
 		glDisable (GL_BLEND);
 		glColor4f (1,1,1,1);
 	}
@@ -765,7 +764,7 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	if (alpha <= 1.0)
 	{
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glEnable (GL_ALPHA_TEST);
+		glEnable(GL_ALPHA_TEST);
 		glDisable (GL_BLEND);
 		glColor4f (1,1,1,1);
 	}
@@ -827,7 +826,7 @@ void Draw_ConsoleBackground (void)
 		if (alpha < 1.0)
 		{
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-			glEnable (GL_ALPHA_TEST);
+			glEnable(GL_ALPHA_TEST);
 			glDisable (GL_BLEND);
 			glColor4f (1,1,1,1);
 		}
@@ -888,7 +887,7 @@ void Draw_Fill (int x, int y, int w, int h, int c, float alpha) //johnfitz -- ad
 
 	glColor3f (1,1,1);
 	glDisable (GL_BLEND); //johnfitz -- for alpha
-	glEnable (GL_ALPHA_TEST); //johnfitz -- for alpha
+	glEnable(GL_ALPHA_TEST); //johnfitz -- for alpha
 	glEnable (GL_TEXTURE_2D);
 }
 
@@ -916,7 +915,7 @@ void Draw_FillByColor (int x, int y, int w, int h, unsigned int c, float alpha) 
 
 	glColor3f (1,1,1);
 	glDisable (GL_BLEND); //johnfitz -- for alpha
-	glEnable (GL_ALPHA_TEST); //johnfitz -- for alpha
+	glEnable(GL_ALPHA_TEST); //johnfitz -- for alpha
 	glEnable (GL_TEXTURE_2D);
 }
 
@@ -943,7 +942,7 @@ void Draw_FadeScreen (void)
 	glEnd ();
 	glColor4f (1,1,1,1);
 	glEnable (GL_TEXTURE_2D);
-	glEnable (GL_ALPHA_TEST);
+	glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 
 	Sbar_Changed();
@@ -1049,7 +1048,7 @@ void GL_Set2D (void)
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
 	glDisable (GL_BLEND);
-	glEnable (GL_ALPHA_TEST);
+	glEnable(GL_ALPHA_TEST);
 	glColor4f (1,1,1,1);
 }
 

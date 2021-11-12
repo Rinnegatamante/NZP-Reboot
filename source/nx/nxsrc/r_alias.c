@@ -800,11 +800,12 @@ void R_DrawTransparentAliasModel (entity_t *e)
 	//
 	// random stuff
 	//
+#ifndef VITA
 	if (gl_smoothmodels.value && !r_drawflat_cheatsafe)
 		glShadeModel (GL_SMOOTH);
 	if (gl_affinemodels.value)
 		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-
+#endif
 	//
 	// set up lighting
 	//
@@ -836,8 +837,10 @@ void R_DrawTransparentAliasModel (entity_t *e)
 
 cleanup:
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+#ifndef VITA
 	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glShadeModel (GL_FLAT);
+#endif
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 	glDisable (GL_ALPHA_TEST);
@@ -883,10 +886,12 @@ void R_DrawAliasModel (entity_t *e)
 	//
 	// random stuff
 	//
+#ifndef VITA
 	if (gl_smoothmodels.value && !r_drawflat_cheatsafe)
 		glShadeModel (GL_SMOOTH);
 	if (gl_affinemodels.value)
 		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+#endif
 	overbright = gl_overbright_models.value;
 	shading = true;
 
@@ -906,7 +911,7 @@ void R_DrawAliasModel (entity_t *e)
 		glEnable(GL_BLEND);
 	}
 	else if (alphatest)
-		glEnable (GL_ALPHA_TEST);
+		glEnable(GL_ALPHA_TEST);
 
 	//
 	// set up lighting
@@ -1113,8 +1118,10 @@ void R_DrawAliasModel (entity_t *e)
 
 cleanup:
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+#ifndef VITA
 	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glShadeModel (GL_FLAT);
+#endif
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 	if (alphatest)
