@@ -4,6 +4,11 @@
 *.o
 *.d
 
+source/nx/*.elf
+source/nx/*.velf
+source/nx/*.vpk
+source/nx/*.sfo
+
 pc/nzp/source/fteqcc\.log
 
 pc/nzp/qwprogs.lno
