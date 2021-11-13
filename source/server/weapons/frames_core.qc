@@ -178,7 +178,7 @@ void Set_W_Frame (float startframe, float endframe, float duration, float funcca
 		}
 	}
 	
-	if (set_model && (startframe != endframe) && !(self.zoom == 2)) { // naievil -- latter used for checkhold 
+	if ((startframe != endframe) && !(self.zoom == 2)) { // naievil -- latter used for checkhold 
 		if (side == S_LEFT) {
 			self.weapon2model = set_model;
 			UpdateV2model(self.weapon2model, GetWepSkin(self.weapon));
