@@ -463,7 +463,7 @@ void() buy_weapon_link_target =
 	
 	ent = find (world, targetname, self.target);
 	
-	if (ent != world)
+	if (ent.classname == "weapon_wall")
 	    self.enemy = ent;
 }
 

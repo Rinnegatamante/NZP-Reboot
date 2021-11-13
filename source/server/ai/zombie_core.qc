@@ -944,9 +944,11 @@ void() removeZombie =
 	setmodel(self.rarm,"");
 	setmodel(self.head,"");
 
+	#ifdef PC
 	remove(self.larm);
 	remove(self.rarm);
 	remove(self.head);
+	#endif
 	
 	#ifndef PC
 	updateLimb (self, 0, world);
