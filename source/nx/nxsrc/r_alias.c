@@ -831,7 +831,10 @@ void R_DrawTransparentAliasModel (entity_t *e)
 	//
 	GL_Bind (tx);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+	glDisable (GL_ALPHA_TEST);
+	glDepthMask(GL_FALSE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	GL_DrawAliasFrame (paliashdr, lerpdata);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -843,7 +846,6 @@ cleanup:
 #endif
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
-	glDisable (GL_ALPHA_TEST);
 	glColor3f(1,1,1);
 	glPopMatrix ();
 }
