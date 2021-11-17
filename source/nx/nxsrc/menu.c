@@ -32,6 +32,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define OPT_GSETTING_GAMMA 		424
 // end propagating
 
+#ifdef VITA
+#define Draw_BgMenu() Draw_StretchPic(0, 0, menu_bk, vid.width, vid.height)
+#else
+#define Draw_BgMenu() Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2)
+#endif
+
 extern cvar_t	waypoint_mode;
 extern cvar_t	in_aimassist;
 extern cvar_t 	joy_invert;
@@ -342,7 +348,11 @@ int M_Paused_Cusor;
 
 void M_Paused_Menu_Draw (void) {
 	paused_hack = true;
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -478,11 +488,15 @@ void M_Menu_Main_f (void)
 
 void M_Main_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Menu Background
 	menu_bk = Draw_CachePic("gfx/menu/menu_background.tga");
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -757,11 +771,15 @@ void M_SinglePlayer_Draw (void)
 	qpic_t* menu_ch 	= Draw_CachePic("gfx/menu/christmas_special.tga");
 	qpic_t* menu_custom = Draw_CachePic("gfx/menu/custom.tga");
 
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	paused_hack = false;
 
 	// Menu Background
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -951,11 +969,15 @@ void M_Menu_Maps_f (void)
 
 void M_Menu_Maps_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	qpic_t* menu_cuthum;
 
 	// Menu Background
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -1848,11 +1870,15 @@ void M_DrawCheckbox (int x, int y, int on)
 
 void M_Options_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -1988,12 +2014,16 @@ static int gsettings_cursor;
 
 void M_Graphics_Settings_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	float r;
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -2078,24 +2108,6 @@ void M_Graphics_Settings_Draw (void)
 	else
 		Draw_ColoredStringScale(300, y + 160, "Enabled", 1, 1, 1, 1, 1.5f);
 
-#ifdef VITA
-	// Back
-	if (gsettings_cursor == 8)
-		Draw_ColoredStringScale(10, y + 250, "Back", 1, 0, 0, 1, 1.5f);
-	else
-		Draw_ColoredStringScale(10, y + 250, "Back", 1, 1, 1, 1, 1.5f);
-	
-	// Descriptions
-	switch(gsettings_cursor) {
-		case 0: Draw_ColoredStringScale(10, y + 225, "Toggle Framerate Overlay.", 1, 1, 1, 1, 1.5f); break;
-		case 1: Draw_ColoredStringScale(10, y + 225, "Increase or Decrease Max Frames per Second.", 1, 1, 1, 1, 1.5f); break;
-		case 2: Draw_ColoredStringScale(10, y + 225, "Adjust Game Field of View.", 1, 1, 1, 1, 1.5f); break;
-		case 3: Draw_ColoredStringScale(10, y + 225, "Increase or Decrease Game Brightness.", 1, 1, 1, 1, 1.5f); break;
-		case 6: Draw_ColoredStringScale(10, y + 225, "Toggle all non-realtime lights.", 1, 1, 1, 1, 1.5f); break;
-		case 7: Draw_ColoredStringScale(10, y + 225, "Toggle texture filtering.", 1, 1, 1, 1, 1.5f); break;
-		default: break;
-	}
-#else
 	// Back
 	if (gsettings_cursor == 8)
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
@@ -2112,7 +2124,6 @@ void M_Graphics_Settings_Draw (void)
 		case 7: Draw_ColoredStringScale(10, y + 305, "Toggle texture filtering.", 1, 1, 1, 1, 1.5f); break;
 		default: break;
 	}
-#endif
 }
 
 void M_Graphics_Settings_Key (int key)
@@ -2189,12 +2200,16 @@ static int csettings_cursor;
 
 void M_Control_Settings_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	float r;
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -2256,23 +2271,6 @@ void M_Control_Settings_Draw (void)
 		Draw_ColoredStringScale(300, y + 115, "Disabled", 1, 1, 1, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(300, y + 115, "Enabled", 1, 1, 1, 1, 1.5f);
-#ifdef VITA
-	// Back
-	if (csettings_cursor == 5)
-		Draw_ColoredStringScale(10, y + 250, "Back", 1, 0, 0, 1, 1.5f);
-	else
-		Draw_ColoredStringScale(10, y + 250, "Back", 1, 1, 1, 1, 1.5f);
-
-
-	// Descriptions
-	switch(csettings_cursor) {
-		case 0: Draw_ColoredStringScale(10, y + 225, "Toggle Crosshair in-game.", 1, 1, 1, 1, 1.5f); break;
-		case 1: Draw_ColoredStringScale(10, y + 225, "Toggle Assisted Aim to improve Targeting.", 1, 1, 1, 1, 1.5f); break;
-		case 2: Draw_ColoredStringScale(10, y + 225, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
-		case 3: Draw_ColoredStringScale(10, y + 225, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
-		case 4: Draw_ColoredStringScale(10, y + 225, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
-	}
-#else
 	// Back
 	if (csettings_cursor == 5)
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
@@ -2288,7 +2286,6 @@ void M_Control_Settings_Draw (void)
 		case 3: Draw_ColoredStringScale(10, y + 305, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
 		case 4: Draw_ColoredStringScale(10, y + 305, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
 	}	
-#endif
 }
 
 void M_Control_Settings_Key (int key)
@@ -2447,22 +2444,23 @@ extern qpic_t      *b_rt;
 
 void M_Keys_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	char* b;
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Header
-#ifdef VITA
-	Draw_ColoredStringScale(10, y + 5, "CONTROLS", 1, 1, 1, 1, 3.0f);
-#else
 	Draw_ColoredStringScale(10, y + 10, "CONTROLS", 1, 1, 1, 1, 3.0f);
-#endif
+
 	if (bind_grab) {
 		Draw_ColoredStringScale(86, y + 305, "Press a key or button for this action", 1, 1, 1, 1, 1.5f);
 	} else {
@@ -2472,11 +2470,7 @@ void M_Keys_Draw (void)
 	}
 
 	for(int i = 0; i < (int)NUMCOMMANDS; i++) {
-#ifdef VITA
-		int y_offset = y + (35 + 15 * i);
-#else
 		int y_offset = y + (55 + 15 * i);
-#endif
 		if (i == keys_cursor) {
 			Draw_ColoredStringScale(10, y_offset, bindnames[i][1], 1, 0, 0, 1, 1.5f);
 		} else {
@@ -2711,10 +2705,14 @@ void M_Menu_Credits_f (void)
 
 void M_Credits_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Menu Background
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
