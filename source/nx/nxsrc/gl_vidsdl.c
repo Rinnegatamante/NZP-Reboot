@@ -1429,6 +1429,7 @@ static void GL_Init (void)
 #ifdef VITA
 	static int vgl_inited = 0;
 	if (!vgl_inited) {
+		vglSetVDMBufferSize(1024 * 1024);
 		vglInitExtended(20 * 1024 * 1024, 960, 544, 2 * 1024 * 1024, SCE_GXM_MULTISAMPLE_4X);
 
 		// Checking for libshacccg.suprx existence
