@@ -460,7 +460,7 @@ void M_Start_Key (int key)
 /* MAIN MENU */
 
 int	m_main_cursor;
-#define	MAIN_ITEMS	5
+#define	MAIN_ITEMS	4
 
 
 void M_Menu_Main_f (void)
@@ -512,18 +512,14 @@ void M_Main_Draw (void)
 	else
 		Draw_ColoredStringScale(10, y + 100, "Settings", 1, 1, 1, 1, 1.5f);
 
-	// Achievements
-	if (m_main_cursor == 2)
-		Draw_ColoredStringScale(10, y + 115, "Achievements", 1, 0, 0, 1, 1.5f);
-	else
-		Draw_ColoredStringScale(10, y + 115, "Achievements", 1, 1, 1, 1, 1.5f);
-	
+	// Achievements (Unavailable, so non-selectable)
+	Draw_ColoredStringScale(10, y + 115, "Achievements", 0.5, 0.5, 0.5, 1, 1.5f);
 
 	// Divider
 	Draw_FillByColor(10, y + 135, 240, 3, 1, 1);
 
 	// Credits
-	if (m_main_cursor == 3)
+	if (m_main_cursor == 2)
 		Draw_ColoredStringScale(10, y + 145, "Credits", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 145, "Credits", 1, 1, 1, 1, 1.5f);
@@ -532,7 +528,7 @@ void M_Main_Draw (void)
 	Draw_FillByColor(10, y + 165, 240, 3, 1, 1);
 
 	// Exit
-	if (m_main_cursor == 4)
+	if (m_main_cursor == 3)
 		Draw_ColoredStringScale(10, y + 175, "Exit", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 175, "Exit", 1, 1, 1, 1, 1.5f);
@@ -543,9 +539,9 @@ void M_Main_Draw (void)
 	switch (m_main_cursor) {
 		case 0: Draw_ColoredStringScale(10, y + 305, "Take on the Hordes by yourself.", 1, 1, 1, 1, 1.5f); break;
 		case 1: Draw_ColoredStringScale(10, y + 305, "Adjust your Settings to Optimize your Experience.", 1, 1, 1, 1, 1.5f); break;
-		case 2: Draw_ColoredStringScale(10, y + 305, "View locked or unlocked Achievements.", 1, 1, 1, 1, 1.5f); break;
-		case 3: Draw_ColoredStringScale(10, y + 305, "See who made NZ:P possible.", 1, 1, 1, 1, 1.5f); break;
-		case 4: Draw_ColoredStringScale(10, y + 305, "Return to Horizon (SwitchOS).", 1, 1, 1, 1, 1.5f); break;
+		//case 2: Draw_ColoredStringScale(10, y + 305, "View locked or unlocked Achievements.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 305, "See who made NZ:P possible.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 305, "Return to Horizon (SwitchOS).", 1, 1, 1, 1, 1.5f); break;
 		default: break;
 	}
 }
@@ -594,15 +590,15 @@ void M_Main_Key (int key)
 			M_Menu_Options_f ();
 			break;
 
-		case 2:
+		//case 2:
 			//M_Menu_Achievements_f ();
-			break;
+			//break;
 
-		case 3:
+		case 2:
 			M_Menu_Credits_f ();
 			break;
 
-		case 4:
+		case 3:
 			M_Menu_Quit_f ();
 			break;
 		}
