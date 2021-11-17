@@ -1255,9 +1255,11 @@ void HUD_Draw (void) {
 	if (key_dest == key_menu_pause || paused_hack == true) {
 		return;
 	}
-
+#ifdef VITA
+	GL_SetCanvas(CANVAS_HUD);
+#else
 	GL_SetCanvas(CANVAS_USEPRINT);
-
+#endif
 	if (waypoint_mode.value) {
 		Draw_String (vid.width/2 - 112, vid.height/2 + 0, "WAYPOINTMODE");
 		Draw_String (vid.width/2 - 240, vid.height/2 + 8, "Press fire to create waypoint");

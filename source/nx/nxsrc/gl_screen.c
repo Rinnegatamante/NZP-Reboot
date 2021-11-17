@@ -1160,9 +1160,11 @@ void SCR_DrawCrosshair (void)
 	if (cl.stats[STAT_HEALTH] < 20 || paused_hack == true) {
 		return;
 	}
-
+#ifdef VITA
+	GL_SetCanvas(CANVAS_HUD);
+#else
 	GL_SetCanvas(CANVAS_USEPRINT);
-
+#endif
 	if (crosshair_spread_time > sv.time && crosshair_spread_time)
     {
         cur_spread = cur_spread + 10;

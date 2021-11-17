@@ -1027,6 +1027,12 @@ void GL_SetCanvas (canvastype newcanvas)
 		glOrtho (0, glwidth, glheight, 0, -99999, 99999);
 		glViewport (glx, gly, glwidth*s, glheight*s);
 		break;
+	case CANVAS_HUD: // FIXME: Workaround for Vita build, would be better to rework completely gl_hud.c code.
+		s = (float)glwidth/vid.conwidth; //use console scale
+		s *= 2;
+		glOrtho (0, glwidth, glheight, 0, -99999, 99999);
+		glViewport (glx, gly, glwidth*s, glheight*s);
+		break;
 	default:
 		Sys_Error ("GL_SetCanvas: bad canvas type");
 	}
