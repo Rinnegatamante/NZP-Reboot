@@ -848,6 +848,9 @@ void M_SinglePlayer_Draw (void)
 
 void M_SinglePlayer_Key (int key)
 {
+#ifdef VITA // For some reasons, clicking on "Solo" on Vita causes double inputs propagation
+	static int fix_double_input = 0;
+#endif
 	switch (key)
 	{
 	case K_ESCAPE:
@@ -876,6 +879,12 @@ void M_SinglePlayer_Key (int key)
 		{
 		case 0:
 			// Nacht Der Untoten
+#ifdef VITA
+			if (!fix_double_input) {
+				fix_double_input++;
+				break;
+			}
+#endif
 			IN_Activate();
 			key_dest = key_game;
 			if (sv.active)
