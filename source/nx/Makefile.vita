@@ -253,14 +253,14 @@ OBJS :=\
 	nxsrc/fnmatch.o
 
 nzp.vpk: nzp.velf
-	vita-make-fself -c -s $< build/eboot.bin
+	vita-make-fself -c -s $< vita_livearea/eboot.bin
 	vita-mksfoex -s TITLE_ID=NZZMBSPTB -d ATTRIBUTE2=12 "Nazi Zombies Portable" param.sfo
-	cp -f param.sfo build/sce_sys/param.sfo
-	vita-pack-vpk -s param.sfo -b build/eboot.bin \
-		--add build/sce_sys/icon0.png=sce_sys/icon0.png \
-		--add build/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
-		--add build/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
-		--add build/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
+	cp -f param.sfo vita_livearea/sce_sys/param.sfo
+	vita-pack-vpk -s param.sfo -b vita_livearea/eboot.bin \
+		--add vita_livearea/sce_sys/icon0.png=sce_sys/icon0.png \
+		--add vita_livearea/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
+		--add vita_livearea/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
+		--add vita_livearea/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
 		nzp.vpk
 
 %.velf: %.elf
@@ -278,4 +278,4 @@ debug:
 	$(error Use "make DEBUG=1")
 
 clean:
-	@rm -rf nzp.velf nzp.elf $(OBJS) nzp.elf.unstripped.elf nzp.vpk build/eboot.bin build/sce_sys/param.sfo ./param.sfo
+	@rm -rf nzp.velf nzp.elf $(OBJS) nzp.elf.unstripped.elf nzp.vpk vita_livearea/eboot.bin vita_livearea/sce_sys/param.sfo ./param.sfo

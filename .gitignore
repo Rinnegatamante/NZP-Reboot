@@ -8,6 +8,8 @@ source/nx/*.elf
 source/nx/*.velf
 source/nx/*.vpk
 source/nx/*.sfo
+source/nx/vita_livearea/*.bin
+source/nx/vita_livearea/sce_sys/*.sfo
 
 pc/nzp/source/fteqcc\.log
 
