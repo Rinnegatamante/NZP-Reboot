@@ -457,14 +457,14 @@ void () buy_weapon_touch =
 	}
 };
 
-void() buy_weapon_link_wall =
+void() buy_weapon_link_target =
 {
 	entity ent;
 	
 	ent = find (world, targetname, self.target);
 	
 	if (ent.classname == "weapon_wall")
-		self.enemy = ent;
+	    self.enemy = ent;
 }
 
 void() buy_weapon =
@@ -482,7 +482,7 @@ void() buy_weapon =
 	precache_extra (self.weapon);
 	self.touch = buy_weapon_touch;
 	
-	self.think = buy_weapon_link_wall;
+	self.think = buy_weapon_link_target;
 	self.nextthink = time + 0.2; 
 
 	ach_tracker_col2++;

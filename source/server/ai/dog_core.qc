@@ -214,6 +214,7 @@ void(entity where) spawn_a_dogB =
 	sdog.th_die = Dog_Death;
 	sdog.th_walk = Dog_Walk_Setup;
 	sdog.outside = FALSE;
+	sdog.iszomb = 1;
 	
 	sdog.th_melee = dog_meleeanim;
 	sdog.th_idle = dog_idleanim;
