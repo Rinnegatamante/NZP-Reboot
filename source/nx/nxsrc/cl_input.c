@@ -28,6 +28,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifdef VITA
 #include <vitasdk.h>
+#else
+#include <switch.h>
+#include <switch/runtime/pad.h>
 #endif
 
 extern cvar_t joy_invert;
@@ -41,6 +44,9 @@ cvar_t gyrosensy = {"gyrosensy", "1.0", CVAR_ARCHIVE};
 
 #ifdef VITA
 SceMotionState motionstate;
+#else
+PadState gyropad;
+HidSixAxisSensorHandle handles[4];
 #endif
 
 /*
@@ -305,18 +311,40 @@ void CL_AdjustAngles (void)
 	if (cl.viewangles[ROLL] < -50)
 		cl.viewangles[ROLL] = -50;
 
-	// gyro support by rinnegatamante (originally from vitaquake)
-#ifdef VITA
+	// vita gyro support by rinnegatamante (originally from vitaquake)
+	// creds to the switch-examples for nx support
 	if (motioncam.value) {
 		if (gyromode.value && cl.stats[STAT_ZOOM] == 0)
 			return;
 
+#ifdef VITA
 		sceMotionGetState(&motionstate);
 
 		// not sure why YAW or the horizontal x axis is the controlled by angularVelocity.y
 		// and the PITCH or the vertical y axis is controlled by angularVelocity.x but its what seems to work
 		float x_gyro_cam = motionstate.angularVelocity.y * gyrosensx.value;
 		float y_gyro_cam = motionstate.angularVelocity.x * gyrosensy.value;
+#else
+		padUpdate(&gyropad);
+		// Read from the correct sixaxis handle depending on the current input style
+		HidSixAxisSensorState sixaxis = {0};
+		u64 style_set = padGetStyleSet(&gyropad);
+		if (style_set & HidNpadStyleTag_NpadHandheld)
+			hidGetSixAxisSensorStates(handles[0], &sixaxis, 1);
+		else if (style_set & HidNpadStyleTag_NpadFullKey)
+			hidGetSixAxisSensorStates(handles[1], &sixaxis, 1);
+		else if (style_set & HidNpadStyleTag_NpadJoyDual) {
+			// For JoyDual, read from either the Left or Right Joy-Con depending on which is/are connected
+			u64 attrib = padGetAttributes(&gyropad);
+			if (attrib & HidNpadAttribute_IsLeftConnected)
+				hidGetSixAxisSensorStates(handles[2], &sixaxis, 1);
+			else if (attrib & HidNpadAttribute_IsRightConnected)
+				hidGetSixAxisSensorStates(handles[3], &sixaxis, 1);
+		}
+
+		float x_gyro_cam = sixaxis.angular_velocity.y * (gyrosensx.value*4);
+		float y_gyro_cam = sixaxis.angular_velocity.x * (gyrosensy.value*4);
+#endif // VITA
 
 		cl.viewangles[YAW] += x_gyro_cam;
 
@@ -327,7 +355,6 @@ void CL_AdjustAngles (void)
 		else
 			cl.viewangles[PITCH] -= y_gyro_cam;
 	}
-#endif // VITA
 }
 
 /*
@@ -847,7 +874,20 @@ void CL_InitInput (void)
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
 	Cmd_AddCommand ("-mlook", IN_MLookUp);
 
+#ifdef VITA
 	sceMotionReset();
  	sceMotionStartSampling();
+#else
+	padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+	padInitializeDefault(&gyropad);
+
+    hidGetSixAxisSensorHandles(&handles[0], 1, HidNpadIdType_Handheld, HidNpadStyleTag_NpadHandheld);
+    hidGetSixAxisSensorHandles(&handles[1], 1, HidNpadIdType_No1,      HidNpadStyleTag_NpadFullKey);
+    hidGetSixAxisSensorHandles(&handles[2], 2, HidNpadIdType_No1,      HidNpadStyleTag_NpadJoyDual);
+    hidStartSixAxisSensor(handles[0]);
+    hidStartSixAxisSensor(handles[1]);
+    hidStartSixAxisSensor(handles[2]);
+    hidStartSixAxisSensor(handles[3]);
+#endif // VITA
 }
 
