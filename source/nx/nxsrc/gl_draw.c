@@ -762,6 +762,14 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	gl = (glpic_t *)pic->data;
 	GL_Bind (gl->gltexture);
 	glBegin (GL_QUADS);
+#ifdef VITA // Somehow on Vita it renders just 2/3 of the texture...
+	if (pic == sniper_scope) {
+		gl->sl = 0;
+		gl->tl = 0;
+		gl->sh = 1;
+		gl->th = 1;
+	}
+#endif
 	glTexCoord2f (gl->sl, gl->tl);
 	glVertex2f (x, y);
 	glTexCoord2f (gl->sh, gl->tl);
