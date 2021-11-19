@@ -2,3 +2,4 @@
 #pragma sourcefile ssprogs.src
 #pragma sourcefile pspprogs.src
 #pragma sourcefile nxprogs.src
+#pragma sourcefile vitaprogs.src

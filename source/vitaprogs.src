@@ -1,4 +1,4 @@
-./../vita/nzp/progs.dat
+./../vita/data/nzp/nzp/progs.dat
 #pragma warning disable Q208
 
 vita/QC/defs.qc
