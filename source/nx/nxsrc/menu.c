@@ -24,6 +24,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "bgmusic.h"
 #include <dirent.h>
 
+#ifdef VITA
+#include <psp2/touch.h>
+#endif // VITA
+
 // anti-enum propaganda
 #define OPT_CSETTING_LSENS 		420
 #define OPT_CSETTING_LACC 		421
@@ -47,6 +51,8 @@ extern cvar_t 	host_maxfps;
 extern cvar_t 	r_fullbright;
 extern cvar_t 	gl_texturemode;
 extern cvar_t 	scr_fov;
+
+cvar_t cl_enablereartouchpad = {"cl_enablereartouchpad", "0", CVAR_ARCHIVE};
 
 extern int loadingScreen;
 extern int ShowBlslogo;
@@ -2196,7 +2202,27 @@ void M_Control_Settings_f (void)
 
 static int csettings_cursor;
 
+#ifdef VITA
+void Vita_ToggleRearTouchPad (void)
+{
+	if (cl_enablereartouchpad.value == 0) {
+		sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 0);
+		sceTouchDisableTouchForce(SCE_TOUCH_PORT_BACK);
+	} else {
+		sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
+		sceTouchEnableTouchForce(SCE_TOUCH_PORT_BACK);
+	}
+}
+#endif
+
+//
+// PSVita requires an extra menu option for disabling of the rear touch pad.
+//
+#ifdef VITA
+#define CSETTINGS_ITEMS 		6
+#else
 #define CSETTINGS_ITEMS 		5
+#endif
 
 void M_Control_Settings_Draw (void)
 {
@@ -2271,8 +2297,25 @@ void M_Control_Settings_Draw (void)
 		Draw_ColoredStringScale(300, y + 115, "Disabled", 1, 1, 1, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(300, y + 115, "Enabled", 1, 1, 1, 1, 1.5f);
-	// Back
+
+#ifdef VITA
 	if (csettings_cursor == 5)
+		Draw_ColoredStringScale(10, y + 130, "Rear TouchPad", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 130, "Rear TouchPad", 1, 1, 1, 1, 1.5f);
+
+	if (cl_enablereartouchpad.value == 0)
+		Draw_ColoredStringScale(300, y + 130, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 130, "Enabled", 1, 1, 1, 1, 1.5f);
+#endif // VITA
+
+	// Back
+#ifdef VITA
+	if (csettings_cursor == 6)
+#else
+	if (csettings_cursor == 5)
+#endif // VITA
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
@@ -2285,6 +2328,9 @@ void M_Control_Settings_Draw (void)
 		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
 		case 3: Draw_ColoredStringScale(10, y + 305, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
 		case 4: Draw_ColoredStringScale(10, y + 305, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
+#ifdef VITA
+		case 5: Draw_ColoredStringScale(10, y + 305, "Toggle support for the PSVita Rear TouchPad.", 1, 1, 1, 1, 1.5f); break;
+#endif // VITA
 	}	
 }
 
@@ -2299,7 +2345,12 @@ void M_Control_Settings_Key (int key)
 				//case 2: break;
 				//case 3: break;
 				case 4: Cvar_SetValue("joy_invert", joy_invert.value ? 0 : 1); break;
+#ifdef VITA
+				case 5: Cvar_SetValue("cl_enablereartouchpad", cl_enablereartouchpad.value ? 0 : 1); Vita_ToggleRearTouchPad(); break;
+				case 6: M_Menu_Options_f (); break;
+#else
 				case 5: M_Menu_Options_f (); break;
+#endif
 				default: break;
 			}
 			break;
@@ -3721,6 +3772,8 @@ void M_Init (void)
 	Cmd_AddCommand ("menu_video", M_Menu_Video_f);
 	Cmd_AddCommand ("help", M_Menu_Credits_f);
 	Cmd_AddCommand ("menu_quit", M_Menu_Quit_f);
+
+	Cvar_RegisterVariable(&cl_enablereartouchpad);
 
 	Map_Finder();
 }
