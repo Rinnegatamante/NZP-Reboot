@@ -130,8 +130,8 @@ void HUD_Init (void) {
 	b_down = Draw_CachePic ("gfx/butticons/dpaddown.tga");
 	b_abutton = Draw_CachePic ("gfx/butticons/fbtncross.tga");
 	b_bbutton = Draw_CachePic ("gfx/butticons/fbtncircle.tga");
-	b_ybutton = Draw_CachePic ("gfx/butticons/fbtnsquare.tga");
-	b_xbutton = Draw_CachePic ("gfx/butticons/fbtntriangle.tga");
+	b_ybutton = Draw_CachePic ("gfx/butticons/fbtntriangle.tga");
+	b_xbutton = Draw_CachePic ("gfx/butticons/fbtnsquare.tga");
 #else
 	b_lt = Draw_CachePic ("gfx/butticons/lt.tga");
 	b_rt = Draw_CachePic ("gfx/butticons/rt.tga");
