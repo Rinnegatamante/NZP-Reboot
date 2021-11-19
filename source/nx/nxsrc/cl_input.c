@@ -26,8 +26,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+#ifdef VITA
+#include <vitasdk.h>
+#endif
+
+extern cvar_t joy_invert;
 extern cvar_t cl_maxpitch; //johnfitz -- variable pitch clamping
 extern cvar_t cl_minpitch; //johnfitz -- variable pitch clamping
+
+cvar_t motioncam = {"motioncam", "0", CVAR_ARCHIVE};
+cvar_t gyromode = {"gyromode", "0", CVAR_ARCHIVE};
+cvar_t gyrosensx = {"gyrosensx", "1.0", CVAR_ARCHIVE};
+cvar_t gyrosensy = {"gyrosensy", "1.0", CVAR_ARCHIVE};
+
+#ifdef VITA
+SceMotionState motionstate;
+#endif
 
 /*
 ===============================================================================
@@ -290,6 +304,30 @@ void CL_AdjustAngles (void)
 		cl.viewangles[ROLL] = 50;
 	if (cl.viewangles[ROLL] < -50)
 		cl.viewangles[ROLL] = -50;
+
+	// gyro support by rinnegatamante (originally from vitaquake)
+#ifdef VITA
+	if (motioncam.value) {
+		if (gyromode.value && cl.stats[STAT_ZOOM] == 0)
+			return;
+
+		sceMotionGetState(&motionstate);
+
+		// not sure why YAW or the horizontal x axis is the controlled by angularVelocity.y
+		// and the PITCH or the vertical y axis is controlled by angularVelocity.x but its what seems to work
+		float x_gyro_cam = motionstate.angularVelocity.y * gyrosensx.value;
+		float y_gyro_cam = motionstate.angularVelocity.x * gyrosensy.value;
+
+		cl.viewangles[YAW] += x_gyro_cam;
+
+		V_StopPitchDrift();
+
+		if (joy_invert.value)
+			cl.viewangles[PITCH] += y_gyro_cam;
+		else
+			cl.viewangles[PITCH] -= y_gyro_cam;
+	}
+#endif // VITA
 }
 
 /*
@@ -809,5 +847,7 @@ void CL_InitInput (void)
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
 	Cmd_AddCommand ("-mlook", IN_MLookUp);
 
+	sceMotionReset();
+ 	sceMotionStartSampling();
 }
 

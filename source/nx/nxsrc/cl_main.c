@@ -65,6 +65,10 @@ entity_t		*cl_visedicts[MAX_VISEDICTS];
 extern cvar_t	r_lerpmodels, r_lerpmove; //johnfitz
 
 extern cvar_t   in_aimassist;
+extern cvar_t 	motioncam;
+extern cvar_t 	gyromode;
+extern cvar_t 	gyrosensx;
+extern cvar_t 	gyrosensy;
 
 /*
 =====================
@@ -913,6 +917,10 @@ void CL_Init (void)
 	Cvar_RegisterVariable (&lookstrafe);
 	Cvar_RegisterVariable (&sensitivity);
 	Cvar_RegisterVariable (&in_aimassist);
+	Cvar_RegisterVariable(&motioncam);
+	Cvar_RegisterVariable(&gyromode);
+	Cvar_RegisterVariable(&gyrosensx);
+	Cvar_RegisterVariable(&gyrosensy);
 	
 	Cvar_RegisterVariable (&cl_alwaysrun);
 

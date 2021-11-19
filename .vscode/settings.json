@@ -8,6 +8,8 @@
         "*.q1": "c",
         "vector": "c",
         "*.inc": "cpp",
-        "cmath": "c"
+        "cmath": "c",
+        "type_traits": "c",
+        "xtr1common": "c"
     }
 }

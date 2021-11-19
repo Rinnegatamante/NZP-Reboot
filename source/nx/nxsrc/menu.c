@@ -34,6 +34,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define OPT_GSETTING_MAXFPS 	422
 #define OPT_GSETTING_FOV 		423
 #define OPT_GSETTING_GAMMA 		424
+#define OPT_CSETTING_GSEX 		425
+#define OPT_CSETTING_GSEY 		426
 // end propagating
 
 #ifdef VITA
@@ -51,6 +53,10 @@ extern cvar_t 	host_maxfps;
 extern cvar_t 	r_fullbright;
 extern cvar_t 	gl_texturemode;
 extern cvar_t 	scr_fov;
+extern cvar_t 	motioncam;
+extern cvar_t 	gyromode;
+extern cvar_t 	gyrosensx;
+extern cvar_t 	gyrosensy;
 
 cvar_t cl_enablereartouchpad = {"cl_enablereartouchpad", "0", CVAR_ARCHIVE};
 
@@ -1736,6 +1742,22 @@ void M_AdjustSlidersAdvanced (int dir, int option)
 				sensitivity.value = 11;
 			Cvar_SetValue ("sensitivity", sensitivity.value);
 			break;
+		case OPT_CSETTING_GSEX:
+			gyrosensx.value += dir * 0.05;
+			if (gyrosensx.value < 0.5)
+				gyrosensx.value = 0.5;
+			if (gyrosensx.value > 1)
+				gyrosensx.value = 1;
+			Cvar_SetValue ("gyrosensx", gyrosensx.value);
+			break;
+		case OPT_CSETTING_GSEY:
+			gyrosensy.value += dir * 0.05;
+			if (gyrosensy.value < 0.5)
+				gyrosensy.value = 0.5;
+			if (gyrosensy.value > 1)
+				gyrosensy.value = 1;
+			Cvar_SetValue ("gyrosensy", gyrosensy.value);
+			break;
 		/*case OPT_CSETTING_LACC:
 			in_acceleration.value -= dir * 0.25;
 			if (in_acceleration.value < 0.5)
@@ -2219,9 +2241,9 @@ void Vita_ToggleRearTouchPad (void)
 // PSVita requires an extra menu option for disabling of the rear touch pad.
 //
 #ifdef VITA
-#define CSETTINGS_ITEMS 		6
+#define CSETTINGS_ITEMS 		10
 #else
-#define CSETTINGS_ITEMS 		5
+#define CSETTINGS_ITEMS 		9
 #endif
 
 void M_Control_Settings_Draw (void)
@@ -2298,23 +2320,63 @@ void M_Control_Settings_Draw (void)
 	else
 		Draw_ColoredStringScale(300, y + 115, "Enabled", 1, 1, 1, 1, 1.5f);
 
-#ifdef VITA
+	// Gyro-Aim
 	if (csettings_cursor == 5)
-		Draw_ColoredStringScale(10, y + 130, "Rear TouchPad", 1, 0, 0, 1, 1.5f);
+		Draw_ColoredStringScale(10, y + 130, "Gyro-Aim", 1, 0, 0, 1, 1.5f);
 	else
-		Draw_ColoredStringScale(10, y + 130, "Rear TouchPad", 1, 1, 1, 1, 1.5f);
+		Draw_ColoredStringScale(10, y + 130, "Gyro-Aim", 1, 1, 1, 1, 1.5f);
 
-	if (cl_enablereartouchpad.value == 0)
+	if (motioncam.value == 0)
 		Draw_ColoredStringScale(300, y + 130, "Disabled", 1, 1, 1, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(300, y + 130, "Enabled", 1, 1, 1, 1, 1.5f);
+
+	// Gyro Mode
+	if (csettings_cursor == 6)
+		Draw_ColoredStringScale(10, y + 145, "Gyro Mode", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 145, "Gyro Mode", 1, 1, 1, 1, 1.5f);
+
+	if (gyromode.value == 0)
+		Draw_ColoredStringScale(300, y + 145, "Always On", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 145, "ADS Only", 1, 1, 1, 1, 1.5f);
+
+	// Gyro Sensitivity X
+	if (csettings_cursor == 7)
+		Draw_ColoredStringScale(10, y + 160, "Gyro Sensitivity X", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 160, "Gyro Sensitivity X", 1, 1, 1, 1, 1.5f);
+
+	r = (gyrosensx.value - 0.5)*(1.0/0.5);
+	M_DrawSlider (308, y + 160, r);
+
+	// Gyro Sensitivity Y
+	if (csettings_cursor == 8)
+		Draw_ColoredStringScale(10, y + 175, "Gyro Sensitivity Y", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 175, "Gyro Sensitivity Y", 1, 1, 1, 1, 1.5f);
+
+	r = (gyrosensy.value - 0.5)*(1.0/0.5);
+	M_DrawSlider (308, y + 175, r);
+
+#ifdef VITA
+	if (csettings_cursor == 9)
+		Draw_ColoredStringScale(10, y + 190, "Rear TouchPad", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 190, "Rear TouchPad", 1, 1, 1, 1, 1.5f);
+
+	if (cl_enablereartouchpad.value == 0)
+		Draw_ColoredStringScale(300, y + 190, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 190, "Enabled", 1, 1, 1, 1, 1.5f);
 #endif // VITA
 
 	// Back
 #ifdef VITA
-	if (csettings_cursor == 6)
+	if (csettings_cursor == 10)
 #else
-	if (csettings_cursor == 5)
+	if (csettings_cursor == 9)
 #endif // VITA
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
 	else
@@ -2328,8 +2390,12 @@ void M_Control_Settings_Draw (void)
 		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
 		case 3: Draw_ColoredStringScale(10, y + 305, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
 		case 4: Draw_ColoredStringScale(10, y + 305, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
+		case 5: Draw_ColoredStringScale(10, y + 305, "Toggle Gyroscopic Aiming.", 1, 1, 1, 1, 1.5f); break;
+		case 6: Draw_ColoredStringScale(10, y + 305, "Set to use Gyro Always or only when ADS.", 1, 1, 1, 1, 1.5f); break;
+		case 7: Draw_ColoredStringScale(10, y + 305, "Adjust Gyro Sensitivty on the X Axis.", 1, 1, 1, 1, 1.5f); break;
+		case 8: Draw_ColoredStringScale(10, y + 305, "Adjust Gyro Sensitivty on the Y Axis.", 1, 1, 1, 1, 1.5f); break;
 #ifdef VITA
-		case 5: Draw_ColoredStringScale(10, y + 305, "Toggle support for the PSVita Rear TouchPad.", 1, 1, 1, 1, 1.5f); break;
+		case 9: Draw_ColoredStringScale(10, y + 305, "Toggle support for the PSVita Rear TouchPad.", 1, 1, 1, 1, 1.5f); break;
 #endif // VITA
 	}	
 }
@@ -2345,11 +2411,13 @@ void M_Control_Settings_Key (int key)
 				//case 2: break;
 				//case 3: break;
 				case 4: Cvar_SetValue("joy_invert", joy_invert.value ? 0 : 1); break;
+				case 5: Cvar_SetValue("motioncam", motioncam.value ? 0 : 1); break;
+				case 6: Cvar_SetValue("gyromode", gyromode.value ? 0 : 1); break;
 #ifdef VITA
-				case 5: Cvar_SetValue("cl_enablereartouchpad", cl_enablereartouchpad.value ? 0 : 1); Vita_ToggleRearTouchPad(); break;
-				case 6: M_Menu_Options_f (); break;
+				case 9: Cvar_SetValue("cl_enablereartouchpad", cl_enablereartouchpad.value ? 0 : 1); Vita_ToggleRearTouchPad(); break;
+				case 10: M_Menu_Options_f (); break;
 #else
-				case 5: M_Menu_Options_f (); break;
+				case 9: M_Menu_Options_f (); break;
 #endif
 				default: break;
 			}
@@ -2361,6 +2429,8 @@ void M_Control_Settings_Key (int key)
 			switch(csettings_cursor) {
 				case 2: M_AdjustSlidersAdvanced(-1, OPT_CSETTING_LSENS); break;
 				case 3: M_AdjustSlidersAdvanced(-1, OPT_CSETTING_LACC); break;
+				case 7: M_AdjustSlidersAdvanced(-1, OPT_CSETTING_GSEX); break;
+				case 8: M_AdjustSlidersAdvanced(-1, OPT_CSETTING_GSEY); break;
 				default: break;
 			}
 			break;
@@ -2368,6 +2438,8 @@ void M_Control_Settings_Key (int key)
 			switch(csettings_cursor) {
 				case 2: M_AdjustSlidersAdvanced(1, OPT_CSETTING_LSENS); break;
 				case 3: M_AdjustSlidersAdvanced(1, OPT_CSETTING_LACC); break;
+				case 7: M_AdjustSlidersAdvanced(1, OPT_CSETTING_GSEX); break;
+				case 8: M_AdjustSlidersAdvanced(1, OPT_CSETTING_GSEY); break;
 				default: break;
 			}
 			break;
