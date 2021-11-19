@@ -4,12 +4,12 @@
 *.o
 *.d
 
-source/nx/*.elf
-source/nx/*.velf
-source/nx/*.vpk
-source/nx/*.sfo
-source/nx/vita_livearea/*.bin
-source/nx/vita_livearea/sce_sys/*.sfo
+source/vita/*.elf
+source/vita/*.velf
+source/vita/*.vpk
+source/vita/*.sfo
+source/vita/livearea/*.bin
+source/vita/livearea/sce_sys/*.sfo
 
 pc/nzp/source/fteqcc\.log
 

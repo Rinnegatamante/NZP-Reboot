@@ -32,6 +32,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "SDL.h"
 #endif
 
+#ifdef VITA
+#include <vitasdk.h>
+
+int rumble_tick = 0;
+int rumble_duration;
+
+void IN_StartRumble (float intensity_small, float intensity_large, float duration)
+{
+	SceCtrlActuator handle;
+	handle.small = (int)(intensity_small * 100.0f);
+	handle.large = (int)(intensity_large * 100.0f);
+	sceCtrlSetActuator(1, &handle);
+	rumble_tick = sceKernelGetProcessTimeWide();
+	rumble_duration = (int)(duration * 1000000.0f);
+}
+
+void IN_StopRumble (void)
+{
+	if (rumble_tick && (sceKernelGetProcessTimeWide() - rumble_tick > rumble_duration)) {
+		SceCtrlActuator handle;
+		handle.small = 0;
+		handle.large = 0;
+		sceCtrlSetActuator(1, &handle);
+		rumble_tick = 0;
+	}
+}
+#endif
+
 static qboolean	textmode;
 
 static cvar_t in_debugkeys = {"in_debugkeys", "0", CVAR_NONE};

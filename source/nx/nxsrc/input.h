@@ -55,6 +55,8 @@ void IN_Deactivate (qboolean free_cursor);
 
 #ifdef VITA
 qboolean IN_SwitchKeyboard(char *out, int out_len);
+void IN_StartRumble (float intensity_small, float intensity_large, float duration);
+void IN_StopRumble (void);
 #endif
 
 #endif	/* _QUAKE_INPUT_H */

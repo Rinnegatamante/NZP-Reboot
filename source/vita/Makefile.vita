@@ -174,93 +174,93 @@ DEFAULT_TARGET := nzp.vpk
 # ----------------------------------------------------------------------------
 
 OBJS :=\
-	nxsrc/bsd_strlcat.o \
-	nxsrc/bsd_strlcpy.o \
-	nxsrc/bgmusic.o \
-	nxsrc/snd_codec.o \
-	nxsrc/snd_flac.o \
-	nxsrc/snd_wave.o \
-	nxsrc/snd_vorbis.o \
-	nxsrc/snd_opus.o \
-	nxsrc/snd_mpg123.o \
-	nxsrc/snd_mikmod.o \
-	nxsrc/snd_xmp.o \
-	nxsrc/snd_umx.o \
-	nxsrc/snd_dma.o \
-	nxsrc/snd_mix.o \
-	nxsrc/snd_mem.o \
-	nxsrc/snd_sdl.o \
-	nxsrc/cd_sdl.o \
-	nxsrc/in_sdl.o \
-	nxsrc/gl_refrag.o \
-	nxsrc/gl_rlight.o \
-	nxsrc/gl_rpart.o \
-	nxsrc/gl_rmain.o \
-	nxsrc/gl_fog.o \
-	nxsrc/gl_rmisc.o \
-	nxsrc/r_part.o \
-	nxsrc/r_world.o \
-	nxsrc/gl_screen.o \
-	nxsrc/gl_sky.o \
-	nxsrc/gl_warp.o \
-	nxsrc/gl_vidsdl.o \
-	nxsrc/gl_hud.o \
-	nxsrc/gl_draw.o \
-	nxsrc/image.o \
-	nxsrc/gl_texmgr.o \
-	nxsrc/gl_mesh.o \
-	nxsrc/r_sprite.o \
-	nxsrc/r_alias.o \
-	nxsrc/r_brush.o \
-	nxsrc/gl_model.o \
-	nxsrc/net_bsd.o \
-	nxsrc/net_udp.o \
-	nxsrc/pl_linux.o \
-	nxsrc/sys_sdl_unix.o \
-	nxsrc/main_sdl.o \
-	nxsrc/net_dgrm.o \
-	nxsrc/net_loop.o \
-	nxsrc/net_main.o \
-	nxsrc/chase.o \
-	nxsrc/cl_demo.o \
-	nxsrc/cl_input.o \
-	nxsrc/cl_main.o \
-	nxsrc/cl_parse.o \
-	nxsrc/cl_tent.o \
-	nxsrc/console.o \
-	nxsrc/keys.o \
-	nxsrc/menu.o \
-	nxsrc/sbar.o \
-	nxsrc/view.o \
-	nxsrc/wad.o \
-	nxsrc/cmd.o \
-	nxsrc/common.o \
-	nxsrc/crc.o \
-	nxsrc/cvar.o \
-	nxsrc/cfgfile.o \
-	nxsrc/host.o \
-	nxsrc/host_cmd.o \
-	nxsrc/mathlib.o \
-	nxsrc/pr_cmds.o \
-	nxsrc/pr_edict.o \
-	nxsrc/pr_exec.o \
-	nxsrc/sv_main.o \
-	nxsrc/sv_move.o \
-	nxsrc/sv_phys.o \
-	nxsrc/sv_user.o \
-	nxsrc/world.o \
-	nxsrc/zone.o \
-	nxsrc/fnmatch.o
+	../nx/nxsrc/bsd_strlcat.o \
+	../nx/nxsrc/bsd_strlcpy.o \
+	../nx/nxsrc/bgmusic.o \
+	../nx/nxsrc/snd_codec.o \
+	../nx/nxsrc/snd_flac.o \
+	../nx/nxsrc/snd_wave.o \
+	../nx/nxsrc/snd_vorbis.o \
+	../nx/nxsrc/snd_opus.o \
+	../nx/nxsrc/snd_mpg123.o \
+	../nx/nxsrc/snd_mikmod.o \
+	../nx/nxsrc/snd_xmp.o \
+	../nx/nxsrc/snd_umx.o \
+	../nx/nxsrc/snd_dma.o \
+	../nx/nxsrc/snd_mix.o \
+	../nx/nxsrc/snd_mem.o \
+	../nx/nxsrc/snd_sdl.o \
+	../nx/nxsrc/cd_sdl.o \
+	../nx/nxsrc/in_sdl.o \
+	../nx/nxsrc/gl_refrag.o \
+	../nx/nxsrc/gl_rlight.o \
+	../nx/nxsrc/gl_rpart.o \
+	../nx/nxsrc/gl_rmain.o \
+	../nx/nxsrc/gl_fog.o \
+	../nx/nxsrc/gl_rmisc.o \
+	../nx/nxsrc/r_part.o \
+	../nx/nxsrc/r_world.o \
+	../nx/nxsrc/gl_screen.o \
+	../nx/nxsrc/gl_sky.o \
+	../nx/nxsrc/gl_warp.o \
+	../nx/nxsrc/gl_vidsdl.o \
+	../nx/nxsrc/gl_hud.o \
+	../nx/nxsrc/gl_draw.o \
+	../nx/nxsrc/image.o \
+	../nx/nxsrc/gl_texmgr.o \
+	../nx/nxsrc/gl_mesh.o \
+	../nx/nxsrc/r_sprite.o \
+	../nx/nxsrc/r_alias.o \
+	../nx/nxsrc/r_brush.o \
+	../nx/nxsrc/gl_model.o \
+	../nx/nxsrc/net_bsd.o \
+	../nx/nxsrc/net_udp.o \
+	../nx/nxsrc/pl_linux.o \
+	../nx/nxsrc/sys_sdl_unix.o \
+	../nx/nxsrc/main_sdl.o \
+	../nx/nxsrc/net_dgrm.o \
+	../nx/nxsrc/net_loop.o \
+	../nx/nxsrc/net_main.o \
+	../nx/nxsrc/chase.o \
+	../nx/nxsrc/cl_demo.o \
+	../nx/nxsrc/cl_input.o \
+	../nx/nxsrc/cl_main.o \
+	../nx/nxsrc/cl_parse.o \
+	../nx/nxsrc/cl_tent.o \
+	../nx/nxsrc/console.o \
+	../nx/nxsrc/keys.o \
+	../nx/nxsrc/menu.o \
+	../nx/nxsrc/sbar.o \
+	../nx/nxsrc/view.o \
+	../nx/nxsrc/wad.o \
+	../nx/nxsrc/cmd.o \
+	../nx/nxsrc/common.o \
+	../nx/nxsrc/crc.o \
+	../nx/nxsrc/cvar.o \
+	../nx/nxsrc/cfgfile.o \
+	../nx/nxsrc/host.o \
+	../nx/nxsrc/host_cmd.o \
+	../nx/nxsrc/mathlib.o \
+	../nx/nxsrc/pr_cmds.o \
+	../nx/nxsrc/pr_edict.o \
+	../nx/nxsrc/pr_exec.o \
+	../nx/nxsrc/sv_main.o \
+	../nx/nxsrc/sv_move.o \
+	../nx/nxsrc/sv_phys.o \
+	../nx/nxsrc/sv_user.o \
+	../nx/nxsrc/world.o \
+	../nx/nxsrc/zone.o \
+	../nx/nxsrc/fnmatch.o
 
 nzp.vpk: nzp.velf
-	vita-make-fself -c -s $< vita_livearea/eboot.bin
+	vita-make-fself -c -s $< livearea/eboot.bin
 	vita-mksfoex -s TITLE_ID=NZZMBSPTB -d ATTRIBUTE2=12 "Nazi Zombies Portable" param.sfo
-	cp -f param.sfo vita_livearea/sce_sys/param.sfo
-	vita-pack-vpk -s param.sfo -b vita_livearea/eboot.bin \
-		--add vita_livearea/sce_sys/icon0.png=sce_sys/icon0.png \
-		--add vita_livearea/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
-		--add vita_livearea/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
-		--add vita_livearea/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
+	cp -f param.sfo livearea/sce_sys/param.sfo
+	vita-pack-vpk -s param.sfo -b livearea/eboot.bin \
+		--add livearea/sce_sys/icon0.png=sce_sys/icon0.png \
+		--add livearea/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
+		--add livearea/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
+		--add livearea/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
 		nzp.vpk
 
 %.velf: %.elf
@@ -278,4 +278,4 @@ debug:
 	$(error Use "make DEBUG=1")
 
 clean:
-	@rm -rf nzp.velf nzp.elf $(OBJS) nzp.elf.unstripped.elf nzp.vpk vita_livearea/eboot.bin vita_livearea/sce_sys/param.sfo ./param.sfo
+	@rm -rf nzp.velf nzp.elf $(OBJS) nzp.elf.unstripped.elf nzp.vpk livearea/eboot.bin livearea/sce_sys/param.sfo ./param.sfo
