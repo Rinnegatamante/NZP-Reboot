@@ -31,7 +31,7 @@
 
 #if defined(PLATFORM_BSD) || defined(PLATFORM_OSX)	|| \
     defined(PLATFORM_AMIGA) /* bsdsocket.library */	|| \
-    defined(__GNU__) /* GNU/Hurd */ || defined(__riscos__) || defined(__SWITCH__)
+    defined(__GNU__) /* GNU/Hurd */ || defined(__riscos__) || defined(__SWITCH__) || defined(VITA)
 /* struct sockaddr has unsigned char sa_len as the first member in BSD
  * variants and the family member is also an unsigned char instead of an
  * unsigned short. This should matter only when PLATFORM_UNIX is defined,
@@ -50,7 +50,9 @@
 #if defined(PLATFORM_UNIX) || defined(PLATFORM_RISCOS)
 
 #include <sys/param.h>
+#ifndef VITA
 #include <sys/ioctl.h>
+#endif
 #if defined(__sun) || defined(sun)
 #include <sys/filio.h>
 #include <sys/sockio.h>
@@ -82,8 +84,9 @@ typedef int	socklen_t;			/* defining as signed int to match the old api */
 #define	socketerror(x)	strerror((x))
 
 /* Verify that we defined HAVE_SA_LEN correctly: */
+#ifndef VITA
 COMPILE_TIME_ASSERT(sockaddr, offsetof(struct sockaddr, sa_family) == SA_FAM_OFFSET);
-
+#endif
 #endif	/* end of unix stuff */
 
 

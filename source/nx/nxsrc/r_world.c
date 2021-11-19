@@ -533,13 +533,17 @@ void R_DrawTextureChains_Multitexture (qmodel_t *model, entity_t *ent, texchain_
 					GL_Bind ((R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 					
 					if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
-						glEnable (GL_ALPHA_TEST); // Flip alpha test back on
+						glEnable(GL_ALPHA_TEST); // Flip alpha test back on
 					
 					GL_EnableMultitexture(); // selects TEXTURE1
 					bound = true;
 				}
 				GL_Bind (lightmap_textures[s->lightmaptexturenum]);
+#ifdef VITA
+				glBegin(GL_TRIANGLE_FAN);
+#else
 				glBegin(GL_POLYGON);
+#endif
 				v = s->polys->verts[0];
 				for (j=0 ; j<s->polys->numverts ; j++, v+= VERTEXSIZE)
 				{
@@ -623,7 +627,7 @@ void R_DrawTextureChains_TextureOnly (qmodel_t *model, entity_t *ent, texchain_t
 					GL_Bind ((R_TextureAnimation(t, ent != NULL ? ent->frame : 0))->gltexture);
 					
 					if (t->texturechains[chain]->flags & SURF_DRAWFENCE)
-						glEnable (GL_ALPHA_TEST); // Flip alpha test back on
+						glEnable(GL_ALPHA_TEST); // Flip alpha test back on
 					
 					bound = true;
 				}
@@ -782,7 +786,11 @@ void R_DrawLightmapChains (void)
 		GL_Bind (lightmap_textures[i]);
 		for (p = lightmap_polys[i]; p; p=p->chain)
 		{
+#ifdef VITA
+			glBegin(GL_TRIANGLE_FAN);
+#else
 			glBegin (GL_POLYGON);
+#endif
 			v = p->verts[0];
 			for (j=0 ; j<p->numverts ; j++, v+= VERTEXSIZE)
 			{

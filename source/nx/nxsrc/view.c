@@ -632,6 +632,29 @@ void V_UpdateBlend (void)
 		V_CalcBlend ();
 }
 
+
+#ifdef VITA
+void DoGamma()
+{
+	glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+	
+	//if we do this twice, we double the brightening effect for a wider range of gamma's
+	glColor4f (1, 1, 1, vid_gamma.value);
+	glBegin (GL_QUADS);
+	glVertex2f (0, 0);
+	glVertex2f (1, 0);
+	glVertex2f (1, 1);
+	glVertex2f (0, 1);
+	glEnd ();
+	glBegin (GL_QUADS);
+	glVertex2f (0, 0);
+	glVertex2f (1, 0);
+	glVertex2f (1, 1);
+	glVertex2f (0, 1);
+	glEnd ();
+}
+#endif
+
 /*
 ============
 V_PolyBlend -- johnfitz -- moved here from gl_rmain.c, and rewritten to use glOrtho
@@ -639,7 +662,11 @@ V_PolyBlend -- johnfitz -- moved here from gl_rmain.c, and rewritten to use glOr
 */
 void V_PolyBlend (void)
 {
-	if (!gl_polyblend.value || !v_blend[3])
+	if (!gl_polyblend.value
+#ifndef VITA
+		|| !v_blend[3]
+#endif
+		)
 		return;
 
 	GL_DisableMultitexture();
@@ -655,15 +682,24 @@ void V_PolyBlend (void)
 	glMatrixMode(GL_MODELVIEW);
     glLoadIdentity ();
 
-	glColor4fv (v_blend);
+#ifdef VITA
+	if (v_blend[3]) {
+#endif
+		glColor4fv (v_blend);
+		glBegin (GL_QUADS);
+		glVertex2f (0, 0);
+		glVertex2f (1, 0);
+		glVertex2f (1, 1);
+		glVertex2f (0, 1);
+		glEnd ();
+#ifdef VITA
+	}
+	
+	if (vid_gamma.value < 1)
+		DoGamma();
+#endif
 
-	glBegin (GL_QUADS);
-	glVertex2f (0,0);
-	glVertex2f (1, 0);
-	glVertex2f (1, 1);
-	glVertex2f (0, 1);
-	glEnd ();
-
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable (GL_BLEND);
 	glEnable (GL_DEPTH_TEST);
 	glEnable (GL_TEXTURE_2D);

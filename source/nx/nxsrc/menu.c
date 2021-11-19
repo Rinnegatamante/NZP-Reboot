@@ -32,6 +32,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define OPT_GSETTING_GAMMA 		424
 // end propagating
 
+#ifdef VITA
+#define Draw_BgMenu() Draw_StretchPic(0, 0, menu_bk, vid.width, vid.height)
+#else
+#define Draw_BgMenu() Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2)
+#endif
+
 extern cvar_t	waypoint_mode;
 extern cvar_t	in_aimassist;
 extern cvar_t 	joy_invert;
@@ -342,7 +348,11 @@ int M_Paused_Cusor;
 
 void M_Paused_Menu_Draw (void) {
 	paused_hack = true;
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -460,7 +470,7 @@ void M_Start_Key (int key)
 /* MAIN MENU */
 
 int	m_main_cursor;
-#define	MAIN_ITEMS	5
+#define	MAIN_ITEMS	4
 
 
 void M_Menu_Main_f (void)
@@ -478,11 +488,15 @@ void M_Menu_Main_f (void)
 
 void M_Main_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Menu Background
 	menu_bk = Draw_CachePic("gfx/menu/menu_background.tga");
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -512,18 +526,14 @@ void M_Main_Draw (void)
 	else
 		Draw_ColoredStringScale(10, y + 100, "Settings", 1, 1, 1, 1, 1.5f);
 
-	// Achievements
-	if (m_main_cursor == 2)
-		Draw_ColoredStringScale(10, y + 115, "Achievements", 1, 0, 0, 1, 1.5f);
-	else
-		Draw_ColoredStringScale(10, y + 115, "Achievements", 1, 1, 1, 1, 1.5f);
-	
+	// Achievements (Unavailable, so non-selectable)
+	Draw_ColoredStringScale(10, y + 115, "Achievements", 0.5, 0.5, 0.5, 1, 1.5f);
 
 	// Divider
 	Draw_FillByColor(10, y + 135, 240, 3, 1, 1);
 
 	// Credits
-	if (m_main_cursor == 3)
+	if (m_main_cursor == 2)
 		Draw_ColoredStringScale(10, y + 145, "Credits", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 145, "Credits", 1, 1, 1, 1, 1.5f);
@@ -532,7 +542,7 @@ void M_Main_Draw (void)
 	Draw_FillByColor(10, y + 165, 240, 3, 1, 1);
 
 	// Exit
-	if (m_main_cursor == 4)
+	if (m_main_cursor == 3)
 		Draw_ColoredStringScale(10, y + 175, "Exit", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 175, "Exit", 1, 1, 1, 1, 1.5f);
@@ -543,9 +553,9 @@ void M_Main_Draw (void)
 	switch (m_main_cursor) {
 		case 0: Draw_ColoredStringScale(10, y + 305, "Take on the Hordes by yourself.", 1, 1, 1, 1, 1.5f); break;
 		case 1: Draw_ColoredStringScale(10, y + 305, "Adjust your Settings to Optimize your Experience.", 1, 1, 1, 1, 1.5f); break;
-		case 2: Draw_ColoredStringScale(10, y + 305, "View locked or unlocked Achievements.", 1, 1, 1, 1, 1.5f); break;
-		case 3: Draw_ColoredStringScale(10, y + 305, "See who made NZ:P possible.", 1, 1, 1, 1, 1.5f); break;
-		case 4: Draw_ColoredStringScale(10, y + 305, "Return to Horizon (SwitchOS).", 1, 1, 1, 1, 1.5f); break;
+		//case 2: Draw_ColoredStringScale(10, y + 305, "View locked or unlocked Achievements.", 1, 1, 1, 1, 1.5f); break;
+		case 2: Draw_ColoredStringScale(10, y + 305, "See who made NZ:P possible.", 1, 1, 1, 1, 1.5f); break;
+		case 3: Draw_ColoredStringScale(10, y + 305, "Return to Horizon (SwitchOS).", 1, 1, 1, 1, 1.5f); break;
 		default: break;
 	}
 }
@@ -594,15 +604,15 @@ void M_Main_Key (int key)
 			M_Menu_Options_f ();
 			break;
 
-		case 2:
+		//case 2:
 			//M_Menu_Achievements_f ();
-			break;
+			//break;
 
-		case 3:
+		case 2:
 			M_Menu_Credits_f ();
 			break;
 
-		case 4:
+		case 3:
 			M_Menu_Quit_f ();
 			break;
 		}
@@ -761,11 +771,15 @@ void M_SinglePlayer_Draw (void)
 	qpic_t* menu_ch 	= Draw_CachePic("gfx/menu/christmas_special.tga");
 	qpic_t* menu_custom = Draw_CachePic("gfx/menu/custom.tga");
 
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	paused_hack = false;
 
 	// Menu Background
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -848,6 +862,9 @@ void M_SinglePlayer_Draw (void)
 
 void M_SinglePlayer_Key (int key)
 {
+#ifdef VITA // For some reasons, clicking on "Solo" on Vita causes double inputs propagation
+	static int fix_double_input = 0;
+#endif
 	switch (key)
 	{
 	case K_ESCAPE:
@@ -876,6 +893,12 @@ void M_SinglePlayer_Key (int key)
 		{
 		case 0:
 			// Nacht Der Untoten
+#ifdef VITA
+			if (!fix_double_input) {
+				fix_double_input++;
+				break;
+			}
+#endif
 			IN_Activate();
 			key_dest = key_game;
 			if (sv.active)
@@ -946,11 +969,15 @@ void M_Menu_Maps_f (void)
 
 void M_Menu_Maps_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	qpic_t* menu_cuthum;
 
 	// Menu Background
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -1843,11 +1870,15 @@ void M_DrawCheckbox (int x, int y, int on)
 
 void M_Options_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -1983,12 +2014,16 @@ static int gsettings_cursor;
 
 void M_Graphics_Settings_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	float r;
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -2078,7 +2113,7 @@ void M_Graphics_Settings_Draw (void)
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 1, 1, 1, 1.5f);
-
+	
 	// Descriptions
 	switch(gsettings_cursor) {
 		case 0: Draw_ColoredStringScale(10, y + 305, "Toggle Framerate Overlay.", 1, 1, 1, 1, 1.5f); break;
@@ -2165,12 +2200,16 @@ static int csettings_cursor;
 
 void M_Control_Settings_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	float r;
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -2232,7 +2271,6 @@ void M_Control_Settings_Draw (void)
 		Draw_ColoredStringScale(300, y + 115, "Disabled", 1, 1, 1, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(300, y + 115, "Enabled", 1, 1, 1, 1, 1.5f);
-
 	// Back
 	if (csettings_cursor == 5)
 		Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
@@ -2247,7 +2285,7 @@ void M_Control_Settings_Draw (void)
 		case 2: Draw_ColoredStringScale(10, y + 305, "Adjust Look Sensitivity.", 1, 1, 1, 1, 1.5f); break;
 		case 3: Draw_ColoredStringScale(10, y + 305, "Adjust Look Acceleration.", 1, 1, 1, 1, 1.5f); break;
 		case 4: Draw_ColoredStringScale(10, y + 305, "Toggle inverted Camera control.", 1, 1, 1, 1, 1.5f); break;
-	}
+	}	
 }
 
 void M_Control_Settings_Key (int key)
@@ -2406,12 +2444,16 @@ extern qpic_t      *b_rt;
 
 void M_Keys_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 	char* b;
 
 	// Menu Background
 	if (paused_hack == false)
-		Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+		Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -2429,7 +2471,6 @@ void M_Keys_Draw (void)
 
 	for(int i = 0; i < (int)NUMCOMMANDS; i++) {
 		int y_offset = y + (55 + 15 * i);
-
 		if (i == keys_cursor) {
 			Draw_ColoredStringScale(10, y_offset, bindnames[i][1], 1, 0, 0, 1, 1.5f);
 		} else {
@@ -2664,10 +2705,14 @@ void M_Menu_Credits_f (void)
 
 void M_Credits_Draw (void)
 {
+#ifdef VITA
+	int y = 0;
+#else
 	int y = vid.height * 0.5;
+#endif
 
 	// Menu Background
-	Draw_StretchPic(0, vid.height * 0.5, menu_bk, vid.width/2, vid.height/2);
+	Draw_BgMenu();
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
@@ -2686,18 +2731,19 @@ void M_Credits_Draw (void)
 	Draw_ColoredStringScale(10, y + 130, "Naievil:         Coding, NX Maintaining", 1, 1, 1, 1, 1.5f);
 	Draw_ColoredStringScale(10, y + 145, "MotoLegacy:      Coding, GFX, Music, NX Maintaining", 1, 1, 1, 1, 1.5f);
 	Draw_ColoredStringScale(10, y + 160, "Derped_Crusader: Models, GFX", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 175, "Rinnegatamante:  Vita Maintaining", 1, 1, 1, 1, 1.5f);
 
-	Draw_ColoredStringScale(10, y + 190, "Special Thanks:", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 205, "- Spike:     FTEQW", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 220, "- Shpuld:    CleanQC4FTE", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 235, "- Crow_Bar:  DQuake", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 250, "- st1x51:    DQuakePlus", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 265, "- fgsfdsfgs: Quakespasm-NX", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 280, "- Azenn:     GFX help", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 295, "- tavo:      Music help", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 310, "- BCDeshiG:  Heavy bug testing", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 205, "Special Thanks:", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 220, "- Spike:     FTEQW", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 235, "- Shpuld:    CleanQC4FTE", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 250, "- Crow_Bar:  DQuake", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 265, "- st1x51:    DQuakePlus", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 280, "- fgsfdsfgs: Quakespasm-NX", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 295, "- Azenn:     GFX help", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 310, "- tavo:      Music help", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 325, "- BCDeshiG:  Heavy bug testing", 1, 1, 1, 1, 1.5f);
 
-	Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 350, "Back", 1, 0, 0, 1, 1.5f);
 }
 
 

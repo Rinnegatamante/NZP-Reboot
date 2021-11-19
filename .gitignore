@@ -4,6 +4,13 @@
 *.o
 *.d
 
+source/vita/*.elf
+source/vita/*.velf
+source/vita/*.vpk
+source/vita/*.sfo
+source/vita/livearea/*.bin
+source/vita/livearea/sce_sys/*.sfo
+
 pc/nzp/source/fteqcc\.log
 
 pc/nzp/qwprogs.lno

@@ -69,13 +69,35 @@ static inline int Buf_GetC(stdio_buffer_t *buf)
 	return buf->buffer[buf->pos++];
 }
 
+/*small function to read files with stb_image - single-file image loader library.
+** downloaded from: https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+** only use jpeg+png formats, because tbh there's not much need for the others.
+** */
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_JPEG
+#define STBI_ONLY_PNG
+#include "stb_image.h"
+static byte *Image_LoadSTBI(FILE *f, int *width, int *height)
+{
+	int bytesPerPixel;
+	byte *heap = stbi_load_from_file(f, width, height, &bytesPerPixel, 4);
+	fclose(f);
+	if (heap)
+	{	//this is silly, but we do it for consistency.
+		//frankly, most people should be using tga-inside-pk3.
+		byte *hunk = Hunk_Alloc(*width**height*4);
+		memcpy(hunk, heap, *width**height*4);
+		free(heap);
+		return hunk;
+	}
+	return NULL;
+}
+
 /*
 ============
 Image_LoadImage
 
 returns a pointer to hunk allocated RGBA data
-
-TODO: search order: tga png jpg pcx lmp
 ============
 */
 byte *Image_LoadImage (const char *name, int *width, int *height)
@@ -87,11 +109,29 @@ byte *Image_LoadImage (const char *name, int *width, int *height)
 		return Image_LoadTGA (f, width, height);
 	}
 
+	q_snprintf (loadfilename, sizeof(loadfilename), "%s.png", name);
+	COM_FOpenFile (loadfilename, &f, NULL);
+	if (f) {
+		return Image_LoadSTBI (f, width, height);
+	}
+	
+	q_snprintf (loadfilename, sizeof(loadfilename), "%s.jpeg", name);
+	COM_FOpenFile (loadfilename, &f, NULL);
+	if (f) {
+		return Image_LoadSTBI (f, width, height);
+	}
+	
+	q_snprintf (loadfilename, sizeof(loadfilename), "%s.jpg", name);
+	COM_FOpenFile (loadfilename, &f, NULL);
+	if (f) {
+		return Image_LoadSTBI (f, width, height);
+	}
+
 	q_snprintf (loadfilename, sizeof(loadfilename), "%s.pcx", name);
 	COM_FOpenFile (loadfilename, &f, NULL);
 	if (f)
 		return Image_LoadPCX (f, width, height);
-
+	
 	return NULL;
 }
 

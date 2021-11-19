@@ -3045,7 +3045,23 @@ void PF_ArgV  (void)
 	strcpy(s, tempc);
 	G_INT(OFS_RETURN) = PR_SetEngineString(s);
 }
+#ifdef VITA
+/*
+=================
+PF_rumble
 
+void rumble (float,float)
+=================
+*/
+void PF_rumble (void)
+{
+	// writes to file, like bprint
+	float intensity_small = G_FLOAT(OFS_PARM0);
+	float intensity_large = G_FLOAT(OFS_PARM1);
+	float duration = G_FLOAT(OFS_PARM2);
+	IN_StartRumble(intensity_small, intensity_large, duration);
+}
+#endif
 static builtin_t pr_builtin[] =
 {
 	PF_Fixme,
@@ -3179,7 +3195,10 @@ static builtin_t pr_builtin[] =
 	NULL, 						// #128
 	NULL, 						// #129
 	PF_tokenize,				// #130
-	PF_ArgV						// #131
+	PF_ArgV,					// #131
+#ifdef VITA
+	PF_rumble					// #132
+#endif
 };
 
 builtin_t *pr_builtins = pr_builtin;

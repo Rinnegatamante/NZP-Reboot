@@ -1,0 +1,281 @@
+# GNU Makefile for QuakeSpasm unix targets.
+# You need the SDL library fully installed.
+# "make DEBUG=1" to build a debug client.
+# "make SDL_CONFIG=/path/to/sdl-config" for unusual SDL installations.
+# "make DO_USERDIRS=1" to enable user directories support
+
+# Enable/Disable user directories support
+DO_USERDIRS=0
+
+### Enable/Disable SDL2
+USE_SDL2=1
+
+### Enable the use of zlib, for compressed pk3s.
+USE_ZLIB=1
+
+### Enable/Disable codecs for streaming music support
+USE_CODEC_WAVE=1
+USE_CODEC_FLAC=0
+USE_CODEC_MP3=1
+USE_CODEC_VORBIS=1
+USE_CODEC_OPUS=1
+# either mikmod or xmp
+USE_CODEC_MIKMOD=0
+USE_CODEC_XMP=0
+USE_CODEC_UMX=0
+
+# which library to use for mp3 decoding: mad or mpg123
+MP3LIB=mad
+# which library to use for ogg decoding: vorbis or tremor
+VORBISLIB=vorbis
+
+# ---------------------------
+DEBUG   ?= 0
+
+# ---------------------------
+# build variables
+# ---------------------------
+PREFIX  = arm-vita-eabi
+CC = $(PREFIX)-gcc
+LINKER = $(CC)
+
+STRIP ?= $(PREFIX)-strip
+
+#CPUFLAGS= -mtune=i686
+#CPUFLAGS= -march=pentium4
+#CPUFLAGS= -mtune=k8
+#CPUFLAGS= -march=atom
+CPUFLAGS=
+LDFLAGS =
+DFLAGS ?=
+CFLAGS ?= -Wl,-q -g \
+	-Wall -Wno-trigraphs -I$(VITASDK)/arm-vita-eabi/include/SDL2 -fno-short-enums \
+	-DVITA -I$(VITASDK)/arm-vita-eabi/include/opus -fno-optimize-sibling-calls -fno-strict-aliasing \
+	-DUSE_ZLIB
+CFLAGS += $(CPUFLAGS)
+ifneq ($(DEBUG),0)
+DFLAGS += -DDEBUG
+CFLAGS += -g
+do_strip=
+else
+DFLAGS += -DNDEBUG
+CFLAGS += -O3
+cmd_strip=$(STRIP) $(1)
+define do_strip
+	$(call cmd_strip,$(1));
+endef
+endif
+
+CFLAGS += $(QSS_CFLAGS)
+LDFLAGS += $(QSS_LDFLAGS)
+ifeq ($(DO_USERDIRS),1)
+CFLAGS += -DDO_USERDIRS=1
+endif
+
+ifeq ($(USE_SDL2),1)
+CFLAGS += -DUSE_SDL2
+endif
+
+NET_LIBS   :=
+
+ifneq ($(VORBISLIB),vorbis)
+ifneq ($(VORBISLIB),tremor)
+$(error Invalid VORBISLIB setting)
+endif
+endif
+ifneq ($(MP3LIB),mpg123)
+ifneq ($(MP3LIB),mad)
+$(error Invalid MP3LIB setting)
+endif
+endif
+ifeq ($(MP3LIB),mad)
+mp3_obj=snd_mp3
+lib_mp3dec=-lmad
+endif
+ifeq ($(MP3LIB),mpg123)
+mp3_obj=snd_mpg123
+lib_mp3dec=-lmpg123
+endif
+ifeq ($(VORBISLIB),vorbis)
+cpp_vorbisdec=
+lib_vorbisdec=-lvorbisfile -lvorbis -logg
+endif
+ifeq ($(VORBISLIB),tremor)
+cpp_vorbisdec=-DVORBIS_USE_TREMOR
+lib_vorbisdec=-lvorbisidec -logg
+endif
+
+CODECLIBS  :=
+ifeq ($(USE_CODEC_WAVE),1)
+CFLAGS+= -DUSE_CODEC_WAVE
+endif
+ifeq ($(USE_CODEC_FLAC),1)
+CFLAGS+= -DUSE_CODEC_FLAC
+CODECLIBS+= -lFLAC
+endif
+ifeq ($(USE_CODEC_OPUS),1)
+# opus and opusfile put their *.h under <includedir>/opus,
+# but they include the headers without the opus directory
+# prefix and rely on pkg-config. ewww...
+CFLAGS+= -DUSE_CODEC_OPUS
+CODECLIBS+= -lopusfile -lopus
+endif
+ifeq ($(USE_CODEC_VORBIS),1)
+CFLAGS+= -DUSE_CODEC_VORBIS $(cpp_vorbisdec)
+CODECLIBS+= $(lib_vorbisdec)
+endif
+ifeq ($(USE_CODEC_MP3),1)
+CFLAGS+= -DUSE_CODEC_MP3
+CODECLIBS+= $(lib_mp3dec)
+endif
+ifeq ($(USE_CODEC_MIKMOD),1)
+CFLAGS+= -DUSE_CODEC_MIKMOD
+CODECLIBS+= -lmikmod
+endif
+ifeq ($(USE_CODEC_XMP),1)
+CFLAGS+= -DUSE_CODEC_XMP
+CODECLIBS+= -lxmp
+endif
+ifeq ($(USE_CODEC_UMX),1)
+CFLAGS+= -DUSE_CODEC_UMX
+endif
+
+COMMON_LIBS:= -lvitaGL -lvitashark -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lScePspnetAdhoc_stub \
+	-lc -lSceLibKernel_stub -lmathneon -lSDL2 -lSceKernelDmacMgr_stub \
+	-lSceNet_stub -lSceNetCtl_stub -lpng -lSceDisplay_stub -lSceGxm_stub -lSceShaccCg_stub \
+	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm -lSceAppMgr_stub \
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl -lssl -lcrypto -lz \
+	-lSceHid_stub -lSceCommonDialog_stub -lSceAudio_stub
+
+ifeq ($(USE_ZLIB),1)
+CFLAGS+= -DUSE_ZLIB
+COMMON_LIBS+= -lz
+endif
+
+LIBS := $(NET_LIBS) $(CODECLIBS) $(COMMON_LIBS)
+
+# ---------------------------
+# targets
+# ---------------------------
+
+.PHONY:	clean debug release
+
+DEFAULT_TARGET := nzp.vpk
+
+# ---------------------------
+# rules
+# ---------------------------
+
+%.o:	%.c
+	$(CC) $(DFLAGS) -c $(CFLAGS) $(SDL_CFLAGS) -o $@ $<
+
+# ----------------------------------------------------------------------------
+# objects
+# ----------------------------------------------------------------------------
+
+OBJS :=\
+	../nx/nxsrc/bsd_strlcat.o \
+	../nx/nxsrc/bsd_strlcpy.o \
+	../nx/nxsrc/bgmusic.o \
+	../nx/nxsrc/snd_codec.o \
+	../nx/nxsrc/snd_flac.o \
+	../nx/nxsrc/snd_wave.o \
+	../nx/nxsrc/snd_vorbis.o \
+	../nx/nxsrc/snd_opus.o \
+	../nx/nxsrc/snd_mpg123.o \
+	../nx/nxsrc/snd_mikmod.o \
+	../nx/nxsrc/snd_xmp.o \
+	../nx/nxsrc/snd_umx.o \
+	../nx/nxsrc/snd_dma.o \
+	../nx/nxsrc/snd_mix.o \
+	../nx/nxsrc/snd_mem.o \
+	../nx/nxsrc/snd_sdl.o \
+	../nx/nxsrc/cd_sdl.o \
+	../nx/nxsrc/in_sdl.o \
+	../nx/nxsrc/gl_refrag.o \
+	../nx/nxsrc/gl_rlight.o \
+	../nx/nxsrc/gl_rpart.o \
+	../nx/nxsrc/gl_rmain.o \
+	../nx/nxsrc/gl_fog.o \
+	../nx/nxsrc/gl_rmisc.o \
+	../nx/nxsrc/r_part.o \
+	../nx/nxsrc/r_world.o \
+	../nx/nxsrc/gl_screen.o \
+	../nx/nxsrc/gl_sky.o \
+	../nx/nxsrc/gl_warp.o \
+	../nx/nxsrc/gl_vidsdl.o \
+	../nx/nxsrc/gl_hud.o \
+	../nx/nxsrc/gl_draw.o \
+	../nx/nxsrc/image.o \
+	../nx/nxsrc/gl_texmgr.o \
+	../nx/nxsrc/gl_mesh.o \
+	../nx/nxsrc/r_sprite.o \
+	../nx/nxsrc/r_alias.o \
+	../nx/nxsrc/r_brush.o \
+	../nx/nxsrc/gl_model.o \
+	../nx/nxsrc/net_bsd.o \
+	../nx/nxsrc/net_udp.o \
+	../nx/nxsrc/pl_linux.o \
+	../nx/nxsrc/sys_sdl_unix.o \
+	../nx/nxsrc/main_sdl.o \
+	../nx/nxsrc/net_dgrm.o \
+	../nx/nxsrc/net_loop.o \
+	../nx/nxsrc/net_main.o \
+	../nx/nxsrc/chase.o \
+	../nx/nxsrc/cl_demo.o \
+	../nx/nxsrc/cl_input.o \
+	../nx/nxsrc/cl_main.o \
+	../nx/nxsrc/cl_parse.o \
+	../nx/nxsrc/cl_tent.o \
+	../nx/nxsrc/console.o \
+	../nx/nxsrc/keys.o \
+	../nx/nxsrc/menu.o \
+	../nx/nxsrc/sbar.o \
+	../nx/nxsrc/view.o \
+	../nx/nxsrc/wad.o \
+	../nx/nxsrc/cmd.o \
+	../nx/nxsrc/common.o \
+	../nx/nxsrc/crc.o \
+	../nx/nxsrc/cvar.o \
+	../nx/nxsrc/cfgfile.o \
+	../nx/nxsrc/host.o \
+	../nx/nxsrc/host_cmd.o \
+	../nx/nxsrc/mathlib.o \
+	../nx/nxsrc/pr_cmds.o \
+	../nx/nxsrc/pr_edict.o \
+	../nx/nxsrc/pr_exec.o \
+	../nx/nxsrc/sv_main.o \
+	../nx/nxsrc/sv_move.o \
+	../nx/nxsrc/sv_phys.o \
+	../nx/nxsrc/sv_user.o \
+	../nx/nxsrc/world.o \
+	../nx/nxsrc/zone.o \
+	../nx/nxsrc/fnmatch.o
+
+nzp.vpk: nzp.velf
+	vita-make-fself -c -s $< livearea/eboot.bin
+	vita-mksfoex -s TITLE_ID=NZZMBSPTB -d ATTRIBUTE2=12 "Nazi Zombies Portable" param.sfo
+	cp -f param.sfo livearea/sce_sys/param.sfo
+	vita-pack-vpk -s param.sfo -b livearea/eboot.bin \
+		--add livearea/sce_sys/icon0.png=sce_sys/icon0.png \
+		--add livearea/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
+		--add livearea/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
+		--add livearea/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
+		nzp.vpk
+
+%.velf: %.elf
+	cp $< $<.unstripped.elf
+	$(PREFIX)-strip -g $<
+	vita-elf-create $< $@
+	
+nzp.elf: $(OBJS)
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) $(LIBS) $(SDL_LIBS) -o $@
+
+image.o: lodepng.c lodepng.h stb_image_write.h
+
+release:	nzp
+debug:
+	$(error Use "make DEBUG=1")
+
+clean:
+	@rm -rf nzp.velf nzp.elf $(OBJS) nzp.elf.unstripped.elf nzp.vpk livearea/eboot.bin livearea/sce_sys/param.sfo ./param.sfo

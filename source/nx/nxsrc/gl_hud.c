@@ -111,6 +111,28 @@ void HUD_Init (void) {
 	fragpic = Draw_CachePic ("gfx/hud/frag.tga");
 	bettypic = Draw_CachePic ("gfx/hud/betty.tga");
 
+#ifdef VITA
+	if (sceKernelGetModel() == 0x20000) { // PSTV
+		b_lt = Draw_CachePic ("gfx/butticons/backl1_pstv.tga");
+		b_rt = Draw_CachePic ("gfx/butticons/backr1_pstv.tga");
+	} else {
+		b_lt = Draw_CachePic ("gfx/butticons/backl1.tga");
+		b_rt = Draw_CachePic ("gfx/butticons/backr1.tga");
+	}
+	b_lthumb = Draw_CachePic ("gfx/butticons/backl1.tga"); // Not existent
+	b_rthumb = Draw_CachePic ("gfx/butticons/backl1.tga"); // Not existent
+	b_lshoulder = Draw_CachePic ("gfx/butticons/backl1.tga"); // Not existent
+	b_rshoulder = Draw_CachePic ("gfx/butticons/backl1.tga"); // Not existent
+	
+	b_left = Draw_CachePic ("gfx/butticons/dpadleft.tga");
+	b_right = Draw_CachePic ("gfx/butticons/dpadright.tga");
+	b_up = Draw_CachePic ("gfx/butticons/dpadup.tga");
+	b_down = Draw_CachePic ("gfx/butticons/dpaddown.tga");
+	b_abutton = Draw_CachePic ("gfx/butticons/fbtncross.tga");
+	b_bbutton = Draw_CachePic ("gfx/butticons/fbtncircle.tga");
+	b_ybutton = Draw_CachePic ("gfx/butticons/fbtntriangle.tga");
+	b_xbutton = Draw_CachePic ("gfx/butticons/fbtnsquare.tga");
+#else
 	b_lt = Draw_CachePic ("gfx/butticons/lt.tga");
 	b_rt = Draw_CachePic ("gfx/butticons/rt.tga");
 	b_lthumb = Draw_CachePic ("gfx/butticons/lthumb.tga");
@@ -126,7 +148,7 @@ void HUD_Init (void) {
 	b_bbutton = Draw_CachePic ("gfx/butticons/bbutton.tga");
 	b_ybutton = Draw_CachePic ("gfx/butticons/ybutton.tga");
 	b_xbutton = Draw_CachePic ("gfx/butticons/xbutton.tga");
-
+#endif
 	fx_blood_lu = Draw_CachePic ("gfx/hud/blood.tga");
 }
 
@@ -1255,9 +1277,11 @@ void HUD_Draw (void) {
 	if (key_dest == key_menu_pause || paused_hack == true) {
 		return;
 	}
-
+#ifdef VITA
+	GL_SetCanvas(CANVAS_HUD);
+#else
 	GL_SetCanvas(CANVAS_USEPRINT);
-
+#endif
 	if (waypoint_mode.value) {
 		Draw_String (vid.width/2 - 112, vid.height/2 + 0, "WAYPOINTMODE");
 		Draw_String (vid.width/2 - 240, vid.height/2 + 8, "Press fire to create waypoint");

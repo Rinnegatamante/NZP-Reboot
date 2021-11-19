@@ -352,7 +352,6 @@ void Key_Console (int key)
 			if (cls.state == ca_disconnected)
 				SCR_UpdateScreen (); // force an update, because the command may take some time
 			return;
-
 		case K_TAB:
 		case K_LSHOULDER:
 			Con_TabComplete ();
@@ -504,11 +503,16 @@ void Key_Console (int key)
 			return;
 
 		case K_YBUTTON:
+#ifdef VITA		
+			IN_SwitchKeyboard(workline + 1, MAXCMDLINE - 1);
+			key_linepos = strlen(workline);
+			return;
+#else
 			// Toggle OSK here
 			OSK_toggle = !OSK_toggle;
 			strcpy(osk_buffer, workline);
 			break;
-
+#endif
 		case 'v':
 		case 'V':
 	#if defined(PLATFORM_OSX) || defined(PLATFORM_MAC)

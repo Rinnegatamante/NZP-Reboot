@@ -366,8 +366,11 @@ void SCR_DrawUseString (void)
 	y = vid.height*0.85;
 	l = strlen (scr_usestring);
     x = ((vid.width/2 - l*8)/2);
-
+#ifdef VITA
+    GL_SetCanvas(CANVAS_HUD);
+#else
     GL_SetCanvas(CANVAS_USEPRINT);
+#endif
     Draw_String (x, y, scr_usestring);
 
     GL_SetCanvas(CANVAS_DEFAULT);
@@ -1160,9 +1163,11 @@ void SCR_DrawCrosshair (void)
 	if (cl.stats[STAT_HEALTH] < 20 || paused_hack == true) {
 		return;
 	}
-
+#ifdef VITA
+	GL_SetCanvas(CANVAS_HUD);
+#else
 	GL_SetCanvas(CANVAS_USEPRINT);
-
+#endif
 	if (crosshair_spread_time > sv.time && crosshair_spread_time)
     {
         cur_spread = cur_spread + 10;
@@ -1376,8 +1381,9 @@ void SCR_ScreenShot_f (void)
 		Con_Printf ("SCR_ScreenShot_f: Couldn't allocate memory\n");
 		return;
 	}
-
+#ifndef VITA
 	glPixelStorei (GL_PACK_ALIGNMENT, 1);/* for widths that aren't a multiple of 4 */
+#endif
 	glReadPixels (glx, gly, glwidth, glheight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 // now write the file
