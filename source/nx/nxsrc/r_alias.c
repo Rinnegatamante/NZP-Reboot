@@ -834,9 +834,7 @@ void R_DrawTransparentAliasModel (entity_t *e)
 	glDisable (GL_ALPHA_TEST);
 	glDepthMask(GL_FALSE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	GL_DrawAliasFrame (paliashdr, lerpdata);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 cleanup:
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);

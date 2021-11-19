@@ -1218,7 +1218,11 @@ void SCR_DrawCrosshair (void)
     else if (crosshair.value && cl.stats[STAT_ZOOM] != 1 && cl.stats[STAT_ZOOM] != 2)
 		Draw_Character ((vid.width - 8)/4/* + crosshair_x*/, (vid.height - 8)*3/4/* + crosshair_y*/, '.');
 	if (cl.stats[STAT_ZOOM] == 2) {
+#ifdef VITA
+		Draw_AlphaPic (-vid.width/12 + 2, vid.height/2 - 46, sniper_scope, 1);
+#else
 		Draw_AlphaPic (0, vid.height/2, sniper_scope, 1);
+#endif
 	}
    if (Hitmark_Time > sv.time) {
         Draw_Pic ((vid.width/2 - hitmark->width)/2,vid.height/2 + (vid.height/2 - hitmark->height)/2, hitmark);
