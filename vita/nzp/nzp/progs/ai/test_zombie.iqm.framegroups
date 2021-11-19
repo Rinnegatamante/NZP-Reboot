@@ -1,0 +1,23 @@
+//start	length	fps	loop
+0	13	10	1//idle
+13	24	10	0//rise out of ground
+37	16	10	1//walk 1
+53	14	10	1//walk 2
+67	16	10	1//walk 3
+83	9	10	1//jog
+92	10	10	1//sprint
+102	5	10	0//attack right arm
+108	5	10	0//attack left arm
+113	10	10	0//hop barricade
+123	11	10	0//death 1
+134	5	10	0//death 2
+139	10	10	0//death 3
+149	4	10	0//begin fall
+153	7	10	0//land fall
+160	7	10	0//begin leap
+167	14	10	0//end leap / pull up onto ledge
+181	10	10	0//attack window barrier 1
+191	11	10	0//attack window barrier 2
+201	3	10	0//reach through window
+203	5	10	1//swipe hand in window
+207	4	10	0//pull hand out of window

@@ -1,0 +1,14 @@
+mech 
+{
+    proneperkpoints: 25
+    spawnpoints: 420
+    round: 3
+    worldtext: 1
+
+    wep 
+    [
+        2
+        4
+        6
+    ]
+}
