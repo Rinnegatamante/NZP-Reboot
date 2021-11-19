@@ -1,5 +1,5 @@
 # NZ:P Reboot
-A faithful recreation of Call of Duty Zombies for the PC and PlayStation Portable. Powered by Quake and coffee.
+A faithful recreation of Call of Duty Zombies for the PC, Nintendo Switch, PlayStation Vita and PlayStation Portable. Powered by Quake and coffee.
 
 <hr>
 
@@ -8,7 +8,7 @@ A faithful recreation of Call of Duty Zombies for the PC and PlayStation Portabl
 * Extract the archive
 * Navigate to NZP-Reboot/source and run fteqccgui.exe
 * Hit the "Compile" button on the bottom left corner of the window.
-* Move respective game data files from root directory into NX/PSP OR run the PC executable.
+* Move respective game data files from root directory into NX/PSP/Vita OR run the PC executable.
 
 <hr>
 
@@ -45,7 +45,8 @@ __Naievil__: Coding, NX Maintaining
 __MotoLegacy__: Coding, GFX, Music
 <br>
 __Derped_Crusader__: Models, GFX
-
+<br>
+__Rinnegatamante__: Vita Maintaining
 
 
 __Special Thanks__:

@@ -2731,18 +2731,19 @@ void M_Credits_Draw (void)
 	Draw_ColoredStringScale(10, y + 130, "Naievil:         Coding, NX Maintaining", 1, 1, 1, 1, 1.5f);
 	Draw_ColoredStringScale(10, y + 145, "MotoLegacy:      Coding, GFX, Music, NX Maintaining", 1, 1, 1, 1, 1.5f);
 	Draw_ColoredStringScale(10, y + 160, "Derped_Crusader: Models, GFX", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 175, "Rinnegatamante:  Vita Maintaining", 1, 1, 1, 1, 1.5f);
 
-	Draw_ColoredStringScale(10, y + 190, "Special Thanks:", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 205, "- Spike:     FTEQW", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 220, "- Shpuld:    CleanQC4FTE", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 235, "- Crow_Bar:  DQuake", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 250, "- st1x51:    DQuakePlus", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 265, "- fgsfdsfgs: Quakespasm-NX", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 280, "- Azenn:     GFX help", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 295, "- tavo:      Music help", 1, 1, 1, 1, 1.5f);
-	Draw_ColoredStringScale(10, y + 310, "- BCDeshiG:  Heavy bug testing", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 205, "Special Thanks:", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 220, "- Spike:     FTEQW", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 235, "- Shpuld:    CleanQC4FTE", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 250, "- Crow_Bar:  DQuake", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 265, "- st1x51:    DQuakePlus", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 280, "- fgsfdsfgs: Quakespasm-NX", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 295, "- Azenn:     GFX help", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 310, "- tavo:      Music help", 1, 1, 1, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 325, "- BCDeshiG:  Heavy bug testing", 1, 1, 1, 1, 1.5f);
 
-	Draw_ColoredStringScale(10, y + 335, "Back", 1, 0, 0, 1, 1.5f);
+	Draw_ColoredStringScale(10, y + 350, "Back", 1, 0, 0, 1, 1.5f);
 }
 
 
