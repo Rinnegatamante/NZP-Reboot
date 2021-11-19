@@ -366,8 +366,11 @@ void SCR_DrawUseString (void)
 	y = vid.height*0.85;
 	l = strlen (scr_usestring);
     x = ((vid.width/2 - l*8)/2);
-
+#ifdef VITA
+    GL_SetCanvas(CANVAS_HUD);
+#else
     GL_SetCanvas(CANVAS_USEPRINT);
+#endif
     Draw_String (x, y, scr_usestring);
 
     GL_SetCanvas(CANVAS_DEFAULT);
