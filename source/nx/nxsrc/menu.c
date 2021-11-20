@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "bgmusic.h"
 #include <dirent.h>
 
+#define NZP_VERSION "v1.0"
+
 #ifdef VITA
 #include <psp2/touch.h>
 #endif // VITA
@@ -514,7 +516,7 @@ void M_Main_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "MAIN MENU", 1, 1, 1, 1, 3.0f);
@@ -761,6 +763,11 @@ void M_Exit_Draw (void)
 
 //=============================================================================
 /* SINGLE PLAYER MENU */
+#ifdef VITA
+int x_map_info_disp = 200;
+#else
+int x_map_info_disp = 0;
+#endif
 
 int	m_singleplayer_cursor;
 #define	SINGLEPLAYER_ITEMS	5
@@ -797,7 +804,7 @@ void M_SinglePlayer_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "SOLO", 1, 1, 1, 1, 3.0f);
@@ -844,28 +851,28 @@ void M_SinglePlayer_Draw (void)
 	// Map description & pic
 	switch (m_singleplayer_cursor) {
 		case 0:
-			Draw_StretchPic(290, y + 55, menu_ndu, 300, 170);
-			Draw_ColoredStringScale(245, y + 235, "Lock and Load; Crashed Plane.", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 250, "Divided. Thousands of Undead.", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 265, "This is the Night of the Dead.", 1, 1, 1, 1, 1.5f);
+			Draw_StretchPic(x_map_info_disp + 290, y + 55, menu_ndu, 300, 170);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 235, "Lock and Load; Crashed Plane.", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 250, "Divided. Thousands of Undead.", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 265, "This is the Night of the Dead.", 1, 1, 1, 1, 1.5f);
 			break;
 		case 1: 
-			Draw_StretchPic(290, y + 55, menu_wh, 300, 170);
-			Draw_ColoredStringScale(245, y + 235, "Old Warehouse full of Zombies!", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 250, "Fight your way to the Power", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 265, "Switch through the Hordes!", 1, 1, 1, 1, 1.5f);
+			Draw_StretchPic(x_map_info_disp + 290, y + 55, menu_wh, 300, 170);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 235, "Old Warehouse full of Zombies!", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 250, "Fight your way to the Power", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 265, "Switch through the Hordes!", 1, 1, 1, 1, 1.5f);
 			break;
 		case 2: 
-			Draw_StretchPic(290, y + 55, menu_ch, 300, 170);
-			Draw_ColoredStringScale(245, y + 235, "No Santa this year. Though we're", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 250, "sure you will get presents from", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 265, "the undead! Will you accept them?", 1, 1, 1, 1, 1.5f);
+			Draw_StretchPic(x_map_info_disp + 290, y + 55, menu_ch, 300, 170);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 235, "No Santa this year. Though we're", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 250, "sure you will get presents from", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 265, "the undead! Will you accept them?", 1, 1, 1, 1, 1.5f);
 			break;
 		case 3: 
-			Draw_StretchPic(290, y + 55, menu_custom, 300, 170);
-			Draw_ColoredStringScale(245, y + 235, "Custom Maps made by Community", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 250, "Members on the Fourm and on", 1, 1, 1, 1, 1.5f);
-			Draw_ColoredStringScale(245, y + 265, "Discord!", 1, 1, 1, 1, 1.5f);
+			Draw_StretchPic(x_map_info_disp + 290, y + 55, menu_custom, 300, 170);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 235, "Custom Maps made by Community", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 250, "Members on the Fourm and on", 1, 1, 1, 1, 1.5f);
+			Draw_ColoredStringScale(x_map_info_disp + 245, y + 265, "Discord!", 1, 1, 1, 1, 1.5f);
 			break;
 		default: break;
 	}
@@ -995,7 +1002,7 @@ void M_Menu_Maps_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "CUSTOM MAPS", 1, 1, 1, 1, 3.0f);
@@ -1015,7 +1022,7 @@ void M_Menu_Maps_Draw (void)
 		if (m_maps_cursor == i) {
 			if (custom_maps[i + multiplier].map_use_thumbnail == 1) {
 				menu_cuthum = Draw_CachePic(custom_maps[i + multiplier].map_thumbnail_path);
-				Draw_StretchPic(305, y + 55, menu_cuthum, 274, 155);
+				Draw_StretchPic(x_map_info_disp + 305, y + 55, menu_cuthum, 274, 155);
 			}
 
 			if (custom_maps[i + multiplier].map_name_pretty != 0)
@@ -1025,55 +1032,55 @@ void M_Menu_Maps_Draw (void)
 
 			if (custom_maps[i + multiplier].map_desc_1 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_1, " ") != 0) {
-					Draw_ColoredStringScale(245, y + 215, custom_maps[i + multiplier].map_desc_1, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 215, custom_maps[i + multiplier].map_desc_1, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_2 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_2, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 230, custom_maps[i + multiplier].map_desc_2, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 230, custom_maps[i + multiplier].map_desc_2, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_3 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_3, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 245, custom_maps[i + multiplier].map_desc_3, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 245, custom_maps[i + multiplier].map_desc_3, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_4 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_4, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 260, custom_maps[i + multiplier].map_desc_4, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 260, custom_maps[i + multiplier].map_desc_4, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_5 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_5, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 275, custom_maps[i + multiplier].map_desc_5, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 275, custom_maps[i + multiplier].map_desc_5, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_6 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_6, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 290, custom_maps[i + multiplier].map_desc_6, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 290, custom_maps[i + multiplier].map_desc_6, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_7 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_7, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 305, custom_maps[i + multiplier].map_desc_7, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 305, custom_maps[i + multiplier].map_desc_7, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_8 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_8, " ") != 0) {
 					line_increment++;
-					Draw_ColoredStringScale(245, y + 320, custom_maps[i + multiplier].map_desc_8, 1, 1, 1, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + 320, custom_maps[i + multiplier].map_desc_8, 1, 1, 1, 1, 1.5f);
 				}
 			}
 			if (custom_maps[i + multiplier].map_author != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_author, " ") != 0) {
 					int author_offset = 230 + (15 * line_increment);
-					Draw_ColoredStringScale(245, y + author_offset, custom_maps[i + multiplier].map_author, 1, 1, 0, 1, 1.5f);
+					Draw_ColoredStringScale(x_map_info_disp + 245, y + author_offset, custom_maps[i + multiplier].map_author, 1, 1, 0, 1, 1.5f);
 				}
 			}
 		} else {
@@ -1912,7 +1919,7 @@ void M_Options_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "SETTINGS", 1, 1, 1, 1, 3.0f);
@@ -2472,6 +2479,7 @@ void M_Control_Settings_Key (int key)
 
 char *bindnames[][2] =
 {
+#if 0 // Current consoles using this engine do have those buttons mapped to analogs
 	{"+forward", 		"Walk Forward"},
 	{"+back", 			"Walk Backward"},
 	{"+moveleft", 		"Move Left"},
@@ -2480,6 +2488,7 @@ char *bindnames[][2] =
 	{"+lookdown", 		"Look Down"},
 	{"+left", 			"Look Left"},
 	{"+right", 			"Look Right"},
+#endif
 	{"+jump",			"Jump"},
 	{"+attack",			"Fire"},
 	{"+aim", 			"Aim Down Sight"},
@@ -2487,7 +2496,9 @@ char *bindnames[][2] =
 	{"+use", 			"Interact"},
 	{"+reload", 		"Reload"},
 	{"+knife", 			"Melee"},
-	{"+grenade", 		"Grenade"}
+	{"+grenade", 		"Grenade"},
+	{"impulse 23", 		"Sprint"},
+	{"impulse 30", 		"Crouch"}
 };
 
 #define	NUMCOMMANDS	(sizeof(bindnames)/sizeof(bindnames[0]))
@@ -2841,7 +2852,7 @@ void M_Credits_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "CREDITS", 1, 1, 1, 1, 3.0f);
