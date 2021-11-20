@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "bgmusic.h"
 #include <dirent.h>
 
+#define NZP_VERSION "v1.0"
+
 #ifdef VITA
 #include <psp2/touch.h>
 #endif // VITA
@@ -514,7 +516,7 @@ void M_Main_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "MAIN MENU", 1, 1, 1, 1, 3.0f);
@@ -802,7 +804,7 @@ void M_SinglePlayer_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "SOLO", 1, 1, 1, 1, 3.0f);
@@ -1000,7 +1002,7 @@ void M_Menu_Maps_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "CUSTOM MAPS", 1, 1, 1, 1, 3.0f);
@@ -1917,7 +1919,7 @@ void M_Options_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "SETTINGS", 1, 1, 1, 1, 3.0f);
@@ -2477,6 +2479,7 @@ void M_Control_Settings_Key (int key)
 
 char *bindnames[][2] =
 {
+#if 0 // Current consoles using this engine do have those buttons mapped to analogs
 	{"+forward", 		"Walk Forward"},
 	{"+back", 			"Walk Backward"},
 	{"+moveleft", 		"Move Left"},
@@ -2485,6 +2488,7 @@ char *bindnames[][2] =
 	{"+lookdown", 		"Look Down"},
 	{"+left", 			"Look Left"},
 	{"+right", 			"Look Right"},
+#endif
 	{"+jump",			"Jump"},
 	{"+attack",			"Fire"},
 	{"+aim", 			"Aim Down Sight"},
@@ -2492,7 +2496,9 @@ char *bindnames[][2] =
 	{"+use", 			"Interact"},
 	{"+reload", 		"Reload"},
 	{"+knife", 			"Melee"},
-	{"+grenade", 		"Grenade"}
+	{"+grenade", 		"Grenade"},
+	{"impulse 23", 		"Sprint"},
+	{"impulse 30", 		"Crouch"}
 };
 
 #define	NUMCOMMANDS	(sizeof(bindnames)/sizeof(bindnames[0]))
@@ -2846,7 +2852,7 @@ void M_Credits_Draw (void)
 	Draw_FillByColor(0, 0, 1280, 720, 0, 0.4);
 
 	// Version String
-	Draw_ColoredString(vid.width - 40, y + 5, "v1.0", 1, 1, 1, 1);
+	Draw_ColoredString(vid.width - 40, y + 5, NZP_VERSION, 1, 1, 1, 1);
 
 	// Header
 	Draw_ColoredStringScale(10, y + 10, "CREDITS", 1, 1, 1, 1, 3.0f);
