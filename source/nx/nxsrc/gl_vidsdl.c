@@ -1123,7 +1123,11 @@ static void GL_CheckExtensions (void)
 		{
 			Con_Printf("FOUND: ARB_multitexture\n");
 			gl_mtexable = true;	
+#ifdef VITA // Number of supported texunits is different between ffp and shaders pipeline in vitaGL
+			gl_max_texture_units = 4;
+#else
 			glGetIntegerv(GL_MAX_TEXTURE_UNITS, &gl_max_texture_units);
+#endif
 			Con_Printf("GL_MAX_TEXTURE_UNITS: %d\n", (int)gl_max_texture_units);
 		}
 		else
@@ -1366,10 +1370,12 @@ static void GL_CheckExtensions (void)
 	//
 	if (COM_CheckParm("-noglslgamma"))
 		Con_Warning ("GLSL gamma disabled at command line\n");
+#ifndef VITA
 	else if (gl_glsl_able)
 	{
 		gl_glsl_gamma_able = true;
 	}
+#endif
 	else
 	{
 		Con_Warning ("GLSL gamma not available, using hardware gamma\n");
@@ -1379,8 +1385,7 @@ static void GL_CheckExtensions (void)
     //
 	if (COM_CheckParm("-noglslalias"))
 		Con_Warning ("GLSL alias model rendering disabled at command line\n");
-	else if (gl_glsl_able && gl_vbo_able && gl_max_texture_units >= 3)
-	{
+	else if (gl_glsl_able && gl_vbo_able && gl_max_texture_units >= 3) {
 		gl_glsl_alias_able = true;
 	}
 	else
@@ -1460,13 +1465,15 @@ static void GL_Init (void)
 	Con_SafePrintf ("GL_VENDOR: %s\n", gl_vendor);
 	Con_SafePrintf ("GL_RENDERER: %s\n", gl_renderer);
 	Con_SafePrintf ("GL_VERSION: %s\n", gl_version);
-	
+#ifdef VITA // The code assumes Desktop GL versioning, so we enforce GL version to 2.0
+	gl_version_major = 2;
+#else
 	if (gl_version == NULL || sscanf(gl_version, "%d.%d", &gl_version_major, &gl_version_minor) < 2)
 	{
 		gl_version_major = 0;
 		gl_version_minor = 0;
 	}
-
+#endif
 	if (gl_extensions_nice != NULL)
 		Z_Free (gl_extensions_nice);
 	gl_extensions_nice = GL_MakeNiceExtensionsList (gl_extensions);

@@ -80,7 +80,9 @@ static GLuint useFullbrightTexLoc;
 static GLuint useOverbrightLoc;
 static GLuint useAlphaTestLoc;
 static GLuint aliasgrayscale_enableLoc;
-
+#ifdef VITA
+static GLuint fogDensityLoc;
+#endif
 
 #define pose1VertexAttrIndex 0
 #define pose1NormalAttrIndex 1
@@ -130,7 +132,77 @@ void GLAlias_CreateShaders (void)
 		{ "Pose2Vert", pose2VertexAttrIndex },
 		{ "Pose2Normal", pose2NormalAttrIndex }
 	};
+#ifdef VITA
+	const GLchar *vertSource = \
+		"uniform float Blend;\n"
+		"uniform float3 ShadeVector;\n"
+		"uniform float4 LightColor;\n"
+		"uniform float4x4 gl_ModelViewProjectionMatrix;\n"
+		"\n"
+		"float r_avertexnormal_dot(float3 vertexnormal) // from MH \n"
+		"{\n"
+		"        float _dot = dot(vertexnormal, ShadeVector);\n"
+		"        // wtf - this reproduces anorm_dots within as reasonable a degree of tolerance as the >= 0 case\n"
+		"        if (_dot < 0.0)\n"
+		"            return 1.0 + _dot * (13.0 / 44.0);\n"
+		"        else\n"
+		"            return 1.0 + _dot;\n"
+		"}\n"
+		"void main(\n"
+		"	float4 TexCoords,\n"
+		"	float4 Pose1Vert,\n"
+		"	float3 Pose1Normal,\n"
+		"	float4 Pose2Vert,\n"
+		"	float3 Pose2Normal,\n"
+		"	float2 out gl_TexCoord : TEXCOORD0,\n"
+		"	float4 out gl_Position : POSITION,\n"
+		"	float4 out gl_FrontColor : COLOR\n"
+		") {\n"
+		"	gl_TexCoord = TexCoords.xy;\n"
+		"	float4 lerpedVert = lerp(float4(Pose1Vert.xyz, 1.0), float4(Pose2Vert.xyz, 1.0), Blend);\n"
+		"	gl_Position = mul(gl_ModelViewProjectionMatrix, lerpedVert);\n"
+		"	float dot1 = r_avertexnormal_dot(Pose1Normal);\n"
+		"	float dot2 = r_avertexnormal_dot(Pose2Normal);\n"
+		"	gl_FrontColor = LightColor * float4(float3(lerp(dot1, dot2, Blend)), 1.0);\n"
+		"}\n";
 
+	const GLchar *fragSource = \
+		"uniform sampler2D Tex;\n"
+		"uniform sampler2D FullbrightTex;\n"
+		"uniform int UseFullbrightTex;\n"
+		"uniform int UseOverbright;\n"
+		"uniform int UseAlphaTest;\n"
+		"uniform int gs_mod;\n"
+		"uniform float fog_density;\n"
+		"\n"
+		"float4 main(\n"
+		"	float4 coords : WPOS,\n"
+		"	float2 gl_TexCoord : TEXCOORD0,\n"
+		"	float4 gl_Color : COLOR\n"
+		") {\n"
+		"	float4 result = tex2D(Tex, gl_TexCoord);\n"
+		"	if (UseAlphaTest && (result.a < 0.666))\n"
+		"		discard;\n"
+		"	result *= gl_Color;\n"
+		"	if (UseOverbright)\n"
+		"		result.rgb *= 2.0;\n"
+		"	if (UseFullbrightTex)\n"
+		"		result += tex2D(FullbrightTex, gl_TexCoord);\n"
+		"	result = clamp(result, 0.0, 1.0);\n"
+		"	float FogFragCoord = coords.z / coords.w;\n"
+		"	float fog = exp(-fog_density * fog_density * FogFragCoord * FogFragCoord);\n"
+		"	fog = clamp(fog, 0.0, 1.0);\n"
+		"	result = lerp(float4(0.3, 0.3, 0.3, 1.0), result, fog);\n"
+		"	result.a = gl_Color.a;\n" // FIXME: This will make almost transparent things cut holes though heavy fog
+		"   if (gs_mod) {\n"
+		"       float value = clamp((result.r * 0.33) + (result.g * 0.55) + (result.b * 0.11), 0.0, 1.0);\n"
+		"       result.r = value;\n"
+		"       result.g = value;\n"
+		"       result.b = value;\n"
+		"   }"
+		"	return result;\n"
+		"}\n";
+#else
 	const GLchar *vertSource = \
 		"#version 110\n"
 		"\n"
@@ -200,6 +272,7 @@ void GLAlias_CreateShaders (void)
 		"   }"
 		"	gl_FragColor = result;\n"
 		"}\n";
+#endif
 
 	if (!gl_glsl_alias_able)
 		return;
@@ -212,12 +285,17 @@ void GLAlias_CreateShaders (void)
 		blendLoc = GL_GetUniformLocation (&r_alias_program, "Blend");
 		shadevectorLoc = GL_GetUniformLocation (&r_alias_program, "ShadeVector");
 		lightColorLoc = GL_GetUniformLocation (&r_alias_program, "LightColor");
+#ifndef VITA
 		texLoc = GL_GetUniformLocation (&r_alias_program, "Tex");
 		fullbrightTexLoc = GL_GetUniformLocation (&r_alias_program, "FullbrightTex");
+#endif
 		useFullbrightTexLoc = GL_GetUniformLocation (&r_alias_program, "UseFullbrightTex");
 		useOverbrightLoc = GL_GetUniformLocation (&r_alias_program, "UseOverbright");
 		useAlphaTestLoc = GL_GetUniformLocation (&r_alias_program, "UseAlphaTest");
 		aliasgrayscale_enableLoc = GL_GetUniformLocation (&r_alias_program, "gs_mod");
+#ifdef VITA
+		fogDensityLoc = GL_GetUniformLocation(&r_alias_program, "fog_density");
+#endif
 	}
 }
 
@@ -270,12 +348,16 @@ void GL_DrawAliasFrame_GLSL (aliashdr_t *paliashdr, lerpdata_t lerpdata, gltextu
 	GL_Uniform1fFunc (blendLoc, blend);
 	GL_Uniform3fFunc (shadevectorLoc, shadevector[0], shadevector[1], shadevector[2]);
 	GL_Uniform4fFunc (lightColorLoc, lightcolor[0], lightcolor[1], lightcolor[2], entalpha);
+#ifndef VITA
 	GL_Uniform1iFunc (texLoc, 0);
 	GL_Uniform1iFunc (fullbrightTexLoc, 1);
+#endif
 	GL_Uniform1iFunc (useFullbrightTexLoc, (fb != NULL) ? 1 : 0);
 	GL_Uniform1fFunc (useOverbrightLoc, overbright ? 1 : 0);
 	GL_Uniform1iFunc (useAlphaTestLoc, (currententity->model->flags & MF_HOLEY) ? 1 : 0);
-
+#ifdef VITA
+	GL_Uniform1fFunc (fogDensityLoc, Fog_GetDensity() / 64.0f);
+#endif
 	// naievil -- experimental grayscale mod
 	GL_Uniform1fFunc (aliasgrayscale_enableLoc, sv_player->v.renderGrayscale);
 
