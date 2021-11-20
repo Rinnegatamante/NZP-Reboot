@@ -556,10 +556,11 @@ GLuint GL_CreateProgram (const GLchar *vertSource, const GLchar *fragSource, int
 
 	program = GL_CreateProgramFunc ();
 	GL_AttachShaderFunc (program, vertShader);
-	GL_DeleteShaderFunc (vertShader);
 	GL_AttachShaderFunc (program, fragShader);
+#ifndef VITA
+	GL_DeleteShaderFunc (vertShader);
 	GL_DeleteShaderFunc (fragShader);
-	
+#endif
 	for (i = 0; i < numbindings; i++)
 	{
 		GL_BindAttribLocationFunc (program, bindings[i].attrib, bindings[i].name);
