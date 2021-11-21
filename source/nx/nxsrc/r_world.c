@@ -441,7 +441,7 @@ Writes out the triangle indices needed to draw s as a triangle list.
 The number of indices it will write is given by R_NumTriangleIndicesForSurf.
 ================
 */
-static void R_TriangleIndicesForSurf (msurface_t *s, unsigned int *dest)
+static void R_TriangleIndicesForSurf (msurface_t *s, unsigned short *dest)
 {
 	int i;
 	for (i=2; i<s->numedges; i++)
@@ -454,7 +454,7 @@ static void R_TriangleIndicesForSurf (msurface_t *s, unsigned int *dest)
 
 #define MAX_BATCH_SIZE 4096
 
-static unsigned int vbo_indices[MAX_BATCH_SIZE];
+static unsigned short vbo_indices[MAX_BATCH_SIZE];
 static unsigned int num_vbo_indices;
 
 /*
@@ -478,7 +478,7 @@ static void R_FlushBatch ()
 {
 	if (num_vbo_indices > 0)
 	{
-		glDrawElements (GL_TRIANGLES, num_vbo_indices, GL_UNSIGNED_INT, vbo_indices);
+		glDrawElements (GL_TRIANGLES, num_vbo_indices, GL_UNSIGNED_SHORT, vbo_indices);
 		num_vbo_indices = 0;
 	}
 }
