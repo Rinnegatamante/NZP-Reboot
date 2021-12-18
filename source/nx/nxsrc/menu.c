@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // anti-enum propaganda
 #define OPT_CSETTING_LSENS 		420
 #define OPT_CSETTING_LACC 		421
-#define OPT_GSETTING_MAXFPS 	422
+#define OPT_GSETTING_MAXFPS		422
 #define OPT_GSETTING_FOV 		423
 #define OPT_GSETTING_GAMMA 		424
 #define OPT_CSETTING_GSEX 		425
@@ -59,6 +59,7 @@ extern cvar_t 	motioncam;
 extern cvar_t 	gyromode;
 extern cvar_t 	gyrosensx;
 extern cvar_t 	gyrosensy;
+extern cvar_t in_rumble;
 
 cvar_t cl_enablereartouchpad = {"cl_enablereartouchpad", "0", CVAR_ARCHIVE};
 
@@ -1868,6 +1869,7 @@ void M_AdjustSliders (int dir)
 	case OPT_AIMASSIST:
 		Cvar_Set ("in_aimassist", in_aimassist.value ? "0" : "1");
 		break;
+
 	}
 }
 
@@ -2248,7 +2250,7 @@ void Vita_ToggleRearTouchPad (void)
 // PSVita requires an extra menu option for disabling of the rear touch pad.
 //
 #ifdef VITA
-#define CSETTINGS_ITEMS 		10
+#define CSETTINGS_ITEMS 		11
 #else
 #define CSETTINGS_ITEMS 		9
 #endif
@@ -2377,11 +2379,21 @@ void M_Control_Settings_Draw (void)
 		Draw_ColoredStringScale(300, y + 190, "Disabled", 1, 1, 1, 1, 1.5f);
 	else
 		Draw_ColoredStringScale(300, y + 190, "Enabled", 1, 1, 1, 1, 1.5f);
+	
+	if (csettings_cursor == 10)
+		Draw_ColoredStringScale(10, y + 205, "Rumble", 1, 0, 0, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(10, y + 205, "Rumble", 1, 1, 1, 1, 1.5f);
+
+	if (in_rumble.value == 0)
+		Draw_ColoredStringScale(300, y + 205, "Disabled", 1, 1, 1, 1, 1.5f);
+	else
+		Draw_ColoredStringScale(300, y + 205, "Enabled", 1, 1, 1, 1, 1.5f);
 #endif // VITA
 
 	// Back
 #ifdef VITA
-	if (csettings_cursor == 10)
+	if (csettings_cursor == 11)
 #else
 	if (csettings_cursor == 9)
 #endif // VITA
@@ -2403,6 +2415,7 @@ void M_Control_Settings_Draw (void)
 		case 8: Draw_ColoredStringScale(10, y + 305, "Adjust Gyro Sensitivty on the Y Axis.", 1, 1, 1, 1, 1.5f); break;
 #ifdef VITA
 		case 9: Draw_ColoredStringScale(10, y + 305, "Toggle support for the PSVita Rear TouchPad.", 1, 1, 1, 1, 1.5f); break;
+		case 10: Draw_ColoredStringScale(10, y + 305, "Toggle rumbling effect when hit by zombies.", 1, 1, 1, 1, 1.5f); break;
 #endif // VITA
 	}	
 }
@@ -2422,7 +2435,8 @@ void M_Control_Settings_Key (int key)
 				case 6: Cvar_SetValue("gyromode", gyromode.value ? 0 : 1); break;
 #ifdef VITA
 				case 9: Cvar_SetValue("cl_enablereartouchpad", cl_enablereartouchpad.value ? 0 : 1); Vita_ToggleRearTouchPad(); break;
-				case 10: M_Menu_Options_f (); break;
+				case 10: Cvar_SetValue("in_rumble", in_rumble.value ? 0 : 1); break;
+				case 11: M_Menu_Options_f (); break;
 #else
 				case 9: M_Menu_Options_f (); break;
 #endif

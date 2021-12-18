@@ -990,6 +990,9 @@ void CL_ParseClientdata (void)
 	i = MSG_ReadShort ();
 	if (cl.stats[STAT_HEALTH] != i)
 	{
+#ifdef VITA
+		if (i < cl.stats[STAT_HEALTH]) IN_StartRumble(1, 1, 0.5f); // Temp implementation
+#endif
 		cl.stats[STAT_HEALTH] = i;
 		Sbar_Changed ();
 	}

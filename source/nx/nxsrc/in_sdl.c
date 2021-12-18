@@ -32,6 +32,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "SDL.h"
 #endif
 
+cvar_t in_rumble = { "in_rumble", "1", CVAR_ARCHIVE };
+
 #ifdef VITA
 #include <vitasdk.h>
 
@@ -40,12 +42,14 @@ int rumble_duration;
 
 void IN_StartRumble (float intensity_small, float intensity_large, float duration)
 {
-	SceCtrlActuator handle;
-	handle.small = (int)(intensity_small * 100.0f);
-	handle.large = (int)(intensity_large * 100.0f);
-	sceCtrlSetActuator(1, &handle);
-	rumble_tick = sceKernelGetProcessTimeWide();
-	rumble_duration = (int)(duration * 1000000.0f);
+	if (in_rumble.value) {
+		SceCtrlActuator handle;
+		handle.small = (int)(intensity_small * 100.0f);
+		handle.large = (int)(intensity_large * 100.0f);
+		sceCtrlSetActuator(1, &handle);
+		rumble_tick = sceKernelGetProcessTimeWide();
+		rumble_duration = (int)(duration * 1000000.0f);
+	}
 }
 
 void IN_StopRumble (void)
@@ -410,6 +414,7 @@ void IN_Init (void)
 	Cvar_RegisterVariable(&joy_exponent_move);
 	Cvar_RegisterVariable(&joy_swapmovelook);
 	Cvar_RegisterVariable(&joy_enable);
+	Cvar_RegisterVariable(&in_rumble);
 
 	IN_Activate();
 	IN_StartupJoystick();
